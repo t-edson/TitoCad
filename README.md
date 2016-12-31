@@ -1,2 +1,9 @@
-# Mis3D
-Motor de edición Gráfica en 3D
+TitoCad 0.0
+===========
+
+TitoCad es un programa desarrollado en Lazarus, con las funcionalidades mínimas de una herramienta CAD de dibujo en 3D.
+
+
+Desarrollado por Tito Hinostroza.
+
+Para información sobre la licencia, ver el archivo LICENSE.md
