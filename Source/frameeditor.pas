@@ -23,7 +23,6 @@ type
   published
     PaintBox1: TPaintBox;
   private
-    motEdi: TModEdicion;  //motor de edición
     function GetAlfa: Single;
     function GetFi: Single;
     function GetxCam: Single;
@@ -41,6 +40,7 @@ type
     function GetyDesp: integer;
     procedure SetZoom(AValue: Single);
   public
+    motEdi: TModEdicion;  //motor de edición
     function AgregaObjeto: TMiObjeto;
     property xDesp: integer read GetxDesp write SetxDesp;
     property yDesp: integer read GetyDesp write SetyDesp;

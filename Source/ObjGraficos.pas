@@ -7,7 +7,7 @@ unit ObjGraficos;
 interface
 uses
   Controls, Classes, SysUtils, Graphics, GraphType, LCLIntf, Dialogs,
-  MotGraf3D, ogDefObjGraf;
+  MotGraf3d, ogDefObjGraf;
 
 type
 
@@ -47,11 +47,11 @@ end;
 procedure TMiObjeto.Dibujar();
 begin
   //Dibuja etiqueta
-  v2d.FijaLapiz(psSolid, 1, clGray);
+  v2d.SetPen(clGray, 1, psSolid);
   v2d.SetText(clBlack, 11,'', true);
   v2d.Texto(X + 2, Y -20, nombre);
   //muestra un rectángulo
-  v2d.FijaLapiz(psSolid, 1, clBlack);
+  v2d.SetPen(clBlack, 1, psSolid);
   v2d.FijaRelleno(TColor($D5D5D5));
   v2d.rectangXYr(x, y+10, x+width, y+height,0);
   inherited;

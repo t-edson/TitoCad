@@ -43,7 +43,10 @@ type
   { TModEdicion }
 
   TModEdicion = class
+  private
+    procedure v2dChangeView;
   protected
+    PB   : TPaintBox;    //Control de Salida
     procedure MouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState;
                         xp, yp: Integer); virtual;
     procedure MouseUp(Sender: TObject; Button: TMouseButton;Shift: TShiftState; xp, yp: Integer);
@@ -59,23 +62,18 @@ type
     OnMouseMove: TMouseMoveEvent;
     OnDblClick: TNotifyEvent;
     OnObjectsMoved: procedure of object;
+    OnChangeView: procedure of object;
   public
     EstPuntero   : EstadosPuntero; //Estado del puntero
-    ParaMover    : Boolean; //bandera de control para el inicio del movimiento
-    CapturoEvento: TObjGraf;     //referencia a objeto que capturo el movimiento
-    ultMarcado   : TObjGraf;     //nombre del objeto marcado
-    objetos  : TlistObjGraf;
-    seleccion: TlistObjGraf;
-//  Public tablas: New Collection
-//  Public botones: New Collection    ;  //Botones
-  //-----------------------------------------------------------
-    Modif: Boolean;  //bandera para indicar Diagrama Modificado
-//  Public MostrarEtiquetas: Boolean     ;  //bandera que indica si se deben mostrar las etiquetas de los símbolos
-
+    ParaMover    : Boolean;   //bandera de control para el inicio del movimiento
+    CapturoEvento: TObjGraf;  //referencia a objeto que capturo el movimiento
+    ultMarcado   : TObjGraf;  //nombre del objeto marcado
+    objetos    : TlistObjGraf;
+    seleccion  : TlistObjGraf;
+    Modif      : Boolean;     //bandera para indicar Diagrama Modificado
     ColorRelleno: TGraphicsColor;
-
-    PB   : TPaintBox;    //Control de Salida
-    v2d  : TMotGraf;    //salida gráfica
+    v2d        : TMotGraf;    //salida gráfica
+    incWheel   : Single;      //Incrmeento de ámgulo con la rueda del mouse
     procedure AgregarObjGrafico(og: TObjGraf; AutoPos: boolean=true);
     procedure EliminarTodosObj;
     procedure ElimSeleccion;
@@ -99,18 +97,8 @@ type
     //coordenadas del raton
     x_pulso: integer;
     y_pulso: integer;
-    (*
-      ;  //Variables para el control de la búsqueda
-      Private CadBus: String    ;  //Cadena de búsqueda
-      Private CajBus: Boolean   ;  //Bandera de caja para búsqueda
-      Private PalCBus: Boolean  ;  //Bandera de palabra completa para búsqueda
-      Private DirBus: Integer   ;  //Dirección de búsqueda
-      Private PosEnc: Integer   ;  //Posición del objeto encontrado. Usado para búsquedas
-    *)
-
     x_cam_a: Single;  //coordenadas anteriores de x_cam
     y_cam_a: Single;
-
     procedure AmpliarClick(factor: real=FACTOR_AMPLIA_ZOOM; xr: integer=0;
       yr: integer=0);
     function AnteriorVisible(c: TObjGraf): TObjGraf;
@@ -145,7 +133,12 @@ type
   end;
 
 implementation
-
+uses
+  FormConfig;
+procedure TModEdicion.v2dChangeView;
+begin
+  if OnChangeView<>nil then OnChangeView;
+end;
 procedure TModEdicion.MouseDown(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; xp, yp: Integer);
 var
@@ -349,26 +342,28 @@ procedure TModEdicion.Paint(Sender: TObject);
 var
   o:TObjGraf;
 begin
-//  If s = NIL Then
-    PB.canvas.Brush.Color := clWhite; //rgb(255,255,255);
-    PB.canvas.FillRect(PB.ClientRect); //fondo
+//    PB.canvas.Brush.Color := clWhite; //rgb(255,255,255);
+//    PB.canvas.FillRect(PB.ClientRect); //fondo
+    v2d.Clear;
     If EstPuntero = EP_SELECMULT Then DibujRecSeleccion;
     //Dibuja objetos
     for o In objetos do begin
       o.Dibujar;
     end;
     //Dibuja eje
-    v2d.PenColor:=clRed;
-    v2d.Line(0,0,0,100,0,0);
-    v2d.Line(0,0,0,0,100,0);
-    v2d.Line(0,0,0,0,0,100);
+    if Config.fcVista.VerEjesCoor then begin
+      v2d.SetPen(clRed, 1);
+      v2d.Line(0,0,0,100,0,0);
+      v2d.Line(0,0,0,0,100,0);
+      v2d.Line(0,0,0,0,0,100);
+    end;
 end;
 procedure TModEdicion.PBMouseWheel(Sender: TObject; Shift: TShiftState;
   WheelDelta: Integer; MousePos: TPoint; var Handled: Boolean);
 var
-  ogs: TObjGraf;
+  d: Single;
 begin
-  ogs := SeleccionaAlguno(MousePos.x, MousePos.y);  //verifica si selecciona a un objeto
+{  ogs := SeleccionaAlguno(MousePos.x, MousePos.y);  //verifica si selecciona a un objeto
   if ogs=nil then begin
     //debe desplazar la pantalla
   end else begin
@@ -378,7 +373,16 @@ begin
     end else begin
 
     end;
+  end;}
+  if Shift = [ssCtrl] then begin
+    if WheelDelta>0 then d := incWheel else d := -incWheel;
+    v2d.Alfa := v2d.Alfa + d;
   end;
+  if Shift = [ssShift] then begin
+    if WheelDelta>0 then d := incWheel else d := -incWheel;
+    v2d.Fi := v2d.Fi + d;
+  end;
+  Refrescar;
 end;
 constructor TModEdicion.Create(PB0: TPaintBox);
 //Metodo de inicialización de la clase Editor. Debe indicarse el
@@ -386,17 +390,18 @@ constructor TModEdicion.Create(PB0: TPaintBox);
 begin
   PB := PB0;  //asigna control de salida
   //intercepta eventos
-  PB.OnMouseUp:=@MouseUp;
+  PB.OnMouseUp  :=@MouseUp;
   PB.OnMouseDown:=@MouseDown;
   PB.OnMouseMove:=@MouseMove;
   PB.OnMouseWheel:=@PBMouseWheel;
-  PB.OnDblClick:=@PBDblClick;
-  PB.OnPaint:=@Paint;
+  PB.OnDblClick :=@PBDblClick;
+  PB.OnPaint    :=@Paint;
 
   //inicia motor
-  ColorRelleno := clWhite  ;  //Color por defecto
-  v2d := TMotGraf.Create(PB);   //Inicia motor gráfico
-  v2d.SetFont('MS Sans Serif');   //define tipo de letra
+  ColorRelleno := clWhite;       //Color por defecto
+  v2d := TMotGraf.Create(PB);    //Inicia motor gráfico
+  v2d.SetFont('MS Sans Serif');  //define tipo de letra
+  v2d.OnChangeView:=@v2dChangeView;
   objetos := TlistObjGraf.Create(TRUE);   //crea lista con "posesión" de objetos
   seleccion := TlistObjGraf.Create(FALSE);   //crea lista sin posesión", porque la
                                         //administración la hará "objetos".
@@ -407,6 +412,7 @@ begin
   Modif := False;   //Inicialmente no modificado
 
   PB.Cursor := CUR_DEFEC;        //define cursor
+  incWheel  := 0.1;
 end;
 destructor TModEdicion.Destroy;
 begin
@@ -535,18 +541,6 @@ begin
     End;
 
 End;
-{
-//Respuesta al evento doble click
-Public Sub DblClick()
-Dim s: TObjGraf
-    Set s = SeleccionaAlguno(x_pulso, y_pulso)
-    If s = NIL Then    ;  //En diagrama
-        Exit Sub
-    Else                    ;  //En objeto
-        RaiseEvent DblClickObj(s)
-    End If
-End Sub
-}
 //***********Funciones para administrar los elementos visibles y seleccion por teclado**********
 Function TModEdicion.NumeroVisibles: Integer;
 //devuelve el número de objetos visibles
@@ -897,7 +891,7 @@ end;
 procedure TModEdicion.DibujRecSeleccion();
 //Dibuja por métodos gráficos el rectángulo de selección en pantalla
 begin
-    v2d.FijaLapiz(psDot, 1, clGreen);
+    v2d.SetPen(clGreen, 1, psDot);
     v2d.rectang0(x1Sel, y1Sel, x2Sel, y2Sel);
 
     x1Sel_a := x1Sel; y1Sel_a := y1Sel;
@@ -954,51 +948,6 @@ begin
         enRecSeleccion := False;
 End;
 (*
-Public Sub CopiarAPortapapeles()
-;  //Copia la selección en un archivo temporal y en el portapapeles.
-Dim s: TObjGraf
-Dim nar: Integer
-    If seleccion.Count = 0 Then Exit Sub
-    ;  //Generar archivo con contenido de copia
-    nar = FreeFile
-    Open CarpetaTmp & "\bolsa.txt" For Output: #nar
-    For Each s In seleccion  ;  //explora todos
-        Call s.EscCadenaObjeto(nar)
-    Next s
-    Close #nar
-    ;  //copia al portapapeles
-    Clipboard.Clear
-    Clipboard.SetText LeeArchivo(CarpetaTmp & "\bolsa.txt")
-    Call Refrescar
-End Sub
-
-Public Sub PegarDePortapapeles()
-;  //Pega la selección en el reporte indicado
-Dim nar: Integer
-Dim Linea: String
-Dim v: TObjGraf
-Dim IDog: Integer         ;  //identificador de objeto gráfico
-Dim error: String
-    ;  //empieza a leer archivo
-    nar = FreeFile
-    If Dir(CarpetaTmp & "\bolsa.txt") = "" Then Exit Sub
-    Open CarpetaTmp & "\bolsa.txt" For Input: #nar
-    Call DeseleccionarTodos
-    While Not EOF(nar)
-        Line Input #nar, Linea
-        If Linea Like "<OG??>" Then     ;  //Objeto gráfico
-            IDog = Val(Mid$(Linea, 4, 2))
-            Set v = AgregarObjGrafico(IDog, 1)
-            If v = NIL Then Exit Sub   ;  //Hubo error
-            error = v.LeeCadenaObjeto(nar)    ;  //lee los datos del objeto
-            If error <> "" Then MsgBox error
-            Seleccionar v
-        End If
-    Wend
-    Close #nar
-    Call Refrescar
-End Sub
-
 Public Sub GuardarPerspectiva(nar: Integer)
 ;  //Escribe datos de perspectiva en disco
     Print #nar, "<PERS>"   ;  //Marcador
@@ -1020,55 +969,6 @@ Dim tmp: String
     Line Input #nar, tmp   ;  //lee marcador de fin
     Call v2d.GuardarPerspectivaEn(Pfinal)   ;  //para que no se regrese
 End Sub
-
-;  //--------------- Funciones de Búsqueda---------------
-Public Sub InicBuscar(bus: String, _
-                      Optional ambito: Integer = AMB_TODO, _
-                      Optional ignCaja: Boolean = True, _
-                      Optional palComp: Boolean = False)
-;  //Inicia una búsqueda definiendo sus parámetros.
-;  //La cadena "bus" debe ser de una sola línea.
-;  //El parámetro "ambito" no se usa. Se mantiene por compatibilidad.
-    PosEnc = 1    ;  //Fija posición inicial para buscar
-    CadBus = bus        ;  //Guarda cadena de búsqueda
-    CajBus = ignCaja    ;  //Guarda parámetro de caja
-    PalCBus = palComp
-End Sub
-
-Public Function BuscarSig(): String
-;  //Realiza una búsqueda iniciada con "InicBuscar"
-;  //La búsqueda se hace a partir de la posición donde se dejó en la última búsqueda.
-;  //Devuelve la cadena de búsqueda.
-    ;  //Protecciones
-    If objetos.Count = 0 Then Exit Function
-    ;  //búsqueda
-    If PalCBus Then ;  //Debe ser palabra completa
-;  //        p = BuscarCadPos(CadBus, PosEnc, PosBus2, CajBus)
-;  //        Do While p.xt <> 0
-;  //            p2 = PosSigPos(p, Len(CadBus))
-;  //            If EsPalabraCompleta(p, p2) Then Exit Do
-;  //            PosEnc = p2
-;  //            p = BuscarCadPos(CadBus, PosEnc, PosBus2, CajBus)
-;  //        Loop
-    Else    ;  //Búsqueda normal
-;  //        p = BuscarCadPos(CadBus, PosEnc, PosBus2, CajBus)
-;  //        If p.xt <> 0 Then p2 = PosSigPos(p, Len(CadBus))
-    End If
-    ;  //verifica si encontró
-;  //    If p.xt <> 0 Then
-;  //        Redibujar = True       ;  //para no complicarnos, dibuja todo
-;  //        If haysel Then Call LimpSelec
-;  //        ;  //Selecciona cadena
-;  //        posCursorA p
-;  //        Call FijarSel0      ;  //Fija punto base
-;  //        posCursorA2 p2
-;  //        Call ExtenderSel ;  //Extiende selección
-;  //        BuscarSig = CadBus  ;  //devuelve cadena
-;  //    Else
-;  //        BuscarSig = CadBus  ;  //devuelve cadena
-;  //        MsgBox "No se encuentra el texto: ;  //" & CadBus & ";  //", vbExclamation
-;  //    End If
-End Function
 *)
 ////////////////// Eventos para atender requerimientos de objetos "TObjGraf" ///////////////////////
 procedure TModEdicion.ObjGraf_Select(obj: TObjGraf);
@@ -1086,7 +986,7 @@ begin
   seleccion.Remove(obj);
 End;
 procedure TModEdicion.ObjGraf_SetPointer(Punt: integer);
-//procedimiento que cambia el puntero del mouse. Es usado para proporcionar la los objetos "TObjGraf"
+//Procedimiento que cambia el puntero del mouse. Es usado para proporcionar la los objetos "TObjGraf"
 //la posibilidad de cambiar el puntero.
 begin
   PB.Cursor := Punt;        //define cursor

@@ -8,7 +8,7 @@ interface
 uses
   SysUtils, Forms, Graphics, SynEdit, Buttons, ComCtrls, StdCtrls,
   MisUtils, SynFacilCompletion,
-  FrameCfgGeneral, FrameCfgPanCom, FrameCfgSynEdit,
+  FrameCfgGeneral, FrameCfgVista, FrameCfgPanCom, FrameCfgSynEdit,
   MiConfigXML, MiConfigUtils, Classes;
 
 type
@@ -40,6 +40,7 @@ type
     edRemo  : TSynEdit;    //referencia al editor remoto
     //Frames de configuración
     fcGeneral : TfraCfgGeneral;
+    fcVista   : TfraCfgVista;
     fcPanCom  : TfraCfgPanCom;   //Panel de comandos
     fcPanComEd: TfraCfgSynEdit;  //Editor de panel de comandos
     //Eventos
@@ -66,6 +67,10 @@ begin
   fcGeneral.Name:= 'General';  //Necesario para que genere su etiqueta en el XML
   fcGeneral.Parent := self;
 
+  fcVista := TfraCfgVista.Create(self);
+  fcVista.Name:='Vista';
+  fcVista.Parent := self;
+
   fcPanCom := TfraCfgPanCom.Create(self);
   fcPanCom.Name:= 'PanComGen';
   fcPanCom.Parent := self;
@@ -76,6 +81,7 @@ begin
 
   TreeView1.Items.Clear;  //Limpia árbol
   LinkFrameToTreeView(TreeView1, '1',   dic('General'), fcGeneral);
+  LinkFrameToTreeView(TreeView1, '1.1', dic('Vista'), fcVista);
   LinkFrameToTreeView(TreeView1, '2',   dic('Panel de Comandos'), fcPanCom);
   LinkFrameToTreeView(TreeView1, '2.1', dic('General'), fcPanCom);
   LinkFrameToTreeView(TreeView1, '2.2', dic('Editor') , fcPanComEd);
@@ -104,6 +110,7 @@ procedure TConfig.Iniciar(hl0: TSynFacilComplet);
 begin
   //inicia Frames
   fcGeneral.Iniciar(cfgFile);
+  fcVista.Iniciar(cfgFile);
   fcPanCom.Iniciar(cfgFile);
   fcPanComEd.Iniciar(cfgFile, edTerm, clBlack);
   //lee parámetros del archivo de configuración.
@@ -198,6 +205,7 @@ procedure TConfig.SetLanguage(lang: string);
 //Rutina de traducción
 begin
   fcGeneral.SetLanguage(lang);
+  fcVista.SetLanguage(lang);
   fcPanCom.SetLanguage(lang);
   fcPanComEd.SetLanguage(lang);
 

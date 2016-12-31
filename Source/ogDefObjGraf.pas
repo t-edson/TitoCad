@@ -399,7 +399,7 @@ begin
   for bot in Buttons do bot.Dibujar;     //Dibuja Buttons
   //---------------dibuja remarcado --------------
   If Marcado and Highlight Then begin
-    v2d.FijaLapiz(psSolid, 2, clBlue);   //RGB(128, 128, 255)
+    v2d.SetPen(clBlue, 2, psSolid);   //RGB(128, 128, 255)
     v2d.rectangXY(fx - tm, fy - tm, fx + width + tm, fy + height + tm,0);
   End;
   //---------------dibuja marca de seleccion--------------

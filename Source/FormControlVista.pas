@@ -4,7 +4,7 @@ unit FormControlVista;
 interface
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
-  Spin, frameEditor;
+  Spin, ExtCtrls, frameEditor;
 type
 
   { TfrmControlVista }
@@ -27,12 +27,14 @@ type
     spnFi: TFloatSpinEdit;
     spnYcam: TFloatSpinEdit;
     spnZoom: TFloatSpinEdit;
+    Timer1: TTimer;
     procedure btnFijarClick(Sender: TObject);
     procedure btnLeerClick(Sender: TObject);
     procedure btnLimpiarClick(Sender: TObject);
     procedure spnAlfaClick(Sender: TObject);
     procedure spnAlfaMouseUp(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
+    procedure Timer1Timer(Sender: TObject);
   private
     fraEditor: TfraGrafEditor;
   public
@@ -88,6 +90,11 @@ procedure TfrmControlVista.spnAlfaMouseUp(Sender: TObject; Button: TMouseButton;
   Shift: TShiftState; X, Y: Integer);
 begin
   btnFijarClick(self);
+end;
+
+procedure TfrmControlVista.Timer1Timer(Sender: TObject);
+begin
+//  btnLeerClick(self);  //actualiza
 end;
 
 procedure TfrmControlVista.Exec(fraEditor0: TfraGrafEditor);
