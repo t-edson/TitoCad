@@ -3,6 +3,11 @@ unit Globales;
 interface
 uses
   Classes, SysUtils;
+
+const
+  NOM_PROG = 'TitoCad';   //nombre de programa
+  {$I ../version.txt}   //versión del programa
+
 type
   TEvRefrescar = procedure of object;
 

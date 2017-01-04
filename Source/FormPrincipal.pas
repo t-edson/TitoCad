@@ -6,7 +6,7 @@ uses
   Classes, SysUtils, FileUtil, SynEdit, Forms, Controls, Graphics, Dialogs,
   ExtCtrls, ActnList, Menus, StdCtrls, Grids, ComCtrls, LCLType, Spin, LCLProc,
   SynFacilUtils, MisUtils, FormConfig, frameEditor, FormControlVista,
-  CadDefinitions, FrameCfgGeneral, FormProject;
+  CadDefinitions, FrameCfgGeneral, FormProject, Globales;
 const
   NUM_CUAD = 20;
   ZOOM_INI = 12;
@@ -27,6 +27,7 @@ type
     acProInsRect: TAction;
     acProInsCubo: TAction;
     acProInsRectan: TAction;
+    acProAgrPag: TAction;
     acVerVisSup: TAction;
     acVerConVista: TAction;
     arbNaveg: TTreeView;
@@ -42,6 +43,8 @@ type
     MenuItem18: TMenuItem;
     MenuItem19: TMenuItem;
     MenuItem20: TMenuItem;
+    MenuItem21: TMenuItem;
+    MenuItem22: TMenuItem;
     MenuItem4: TMenuItem;
     MenuItem5: TMenuItem;
     acHerConfig: TAction;
@@ -81,6 +84,7 @@ type
     procedure acArcGuarExecute(Sender: TObject);
     procedure acArcNueProExecute(Sender: TObject);
     procedure acArcSalirExecute(Sender: TObject);
+    procedure acProAgrPagExecute(Sender: TObject);
     procedure acProPropiedExecute(Sender: TObject);
     procedure acVerConVistaExecute(Sender: TObject);
     procedure acVerVisSupExecute(Sender: TObject);
@@ -90,7 +94,7 @@ type
     procedure FormShow(Sender: TObject);
     procedure acHerConfigExecute(Sender: TObject);
   private
-    curProject: TMinProyecto;
+    curProject: TCadProyecto;
     fraMotEdicion: TfraGrafEditor;
     procedure arbNavegMouseUp(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
@@ -335,7 +339,7 @@ begin
 //    mnPresup.Enabled:=false;  //desactiva todo el menú
 //    mnTablero.Enabled:=false;
 //    mnReportes.Enabled:=false;
-//    Caption := NOM_PROG + ' ' + VER_PROG;
+    Caption := NOM_PROG + ' ' + VER_PROG;
 //    acArcGuar.Enabled:=false;
 //    acArcGuarCom.Enabled:=false;
 //    acArcCerrar.Enabled:=false;
@@ -352,7 +356,7 @@ begin
 //    mnPresup.Enabled:=true;  //activa todo el menú
 //    mnTablero.Enabled:=true;
 //    mnReportes.Enabled:=true;
-//    Caption := NOM_PROG + ' ' + VER_PROG + ' - ' + curProject.codigo + ' ' + curProject.nombre;
+    Caption := NOM_PROG + ' ' + VER_PROG + ' - ' + curProject.nombre;
 //    acArcGuar.Enabled := curProject.Modific;
 //    acArcGuarCom.Enabled:=true;
 //    acArcCerrar.Enabled:=true;
@@ -371,11 +375,11 @@ end;
 procedure TfrmPrincipal.RefrescarPanelNaveg;
 {Refresca el panel con los ítems del presupuesto.}
 var
-  tab: TItemGraf;
+  pag: TCadPage;
   nod: TTreeNode;
   nodProj: TTreeNode;
   nom: String;
-  nodCop, nodDatos, nodGeomet, nodVista: TTreeNode;
+  nodCop, nodGeomet, nodVista: TTreeNode;
   ns: String;
 begin
   ns := NombreNodoSelec;  //guarda elemento seleccionado
@@ -389,54 +393,26 @@ begin
   //Hay un presupuesto abierto
   PageControl1.Visible := true;
   panNaveg.Visible := true;
-
+  //Agrega nodo de proyecto
   nodProj := arbNaveg.items.AddChild(nil, curProject.nombre);  //agrega presupuesto actual
   nodProj.ImageIndex := 25;
   nodProj.SelectedIndex:=25;
-  //Agrega otroos nodos de categorías
-  nodDatos := arbNaveg.items.AddChild(nodProj, 'Datos');  //agrega presupuesto actual
-  nodDatos.ImageIndex := 28;
-  nodDatos.SelectedIndex:=28;
-  nodGeomet := arbNaveg.items.AddChild(nodProj, 'Geometría');  //agrega presupuesto actual
-  nodGeomet.ImageIndex := 27;
-  nodGeomet.SelectedIndex:=27;
-  nodVista := arbNaveg.items.AddChild(nodProj, 'Vista Principal');  //agrega presupuesto actual
-  nodVista.ImageIndex := 26;
-  nodVista.SelectedIndex:=26;
-  //Verifica ítems gráficos
-  if curProject.itemsGeom.Count = 0 then begin
-     //no hay ítems gráficos
-     arbNaveg.items.AddChild(nodGeomet, MSJE_SIN_ELEM);
-//     exit;
-  end;
-   //Hay ítems (tableros u otros), carga tableros
+  //Agrega nodo de las páginas
   arbNaveg.BeginUpdate;
-  for tab in curProject.itemsGeom do begin
-     nod := arbNaveg.Items.AddChild(nodProj, tab.nombre);
-     case tab.tipTab of
-     ttAutosoport: begin
-         nod.ImageIndex := 17;
-         nod.SelectedIndex:=17;
-       end;
-     ttAdosado: begin
-         nod.ImageIndex := 18;
-         nod.SelectedIndex:=18;
-       end;
-     ttEmpotrado: begin
-         nod.ImageIndex := 19;
-         nod.SelectedIndex:=19;
-       end;
-     end;
-//     if tab.EsGrupo then begin
-//       //Es tablero de grupo, hay que incluir sus elementos
-//        for nom in tab.nombreCopias do begin
-//          nodCop := arbNaveg.Items.AddChild(nod, nom);
-//          nodCop.ImageIndex := 10;
-//          nodCop.SelectedIndex:=10;
-//        end;
-//     end;
+  for pag in curProject.pages do begin
+     nod := arbNaveg.Items.AddChild(nodProj, pag.nombre);
+     nod.ImageIndex := 34;
+     nod.SelectedIndex:=34;
+     //Agrega campos de página
+     nodGeomet := arbNaveg.items.AddChild(nod, 'Objetos Gráficos');  //agrega presupuesto actual
+     nodGeomet.ImageIndex := 27;
+     nodGeomet.SelectedIndex:=27;
+     nodVista := arbNaveg.items.AddChild(nod, 'Vista Principal');  //agrega presupuesto actual
+     nodVista.ImageIndex := 26;
+     nodVista.SelectedIndex:=26;
   end;
   arbNaveg.EndUpdate;
+   //Hay ítems (tableros u otros), carga tableros
   nodProj.Expanded:=true;   //lo deja expandido
   SeleccNodo(ns);  //restaura la selección
 end;
@@ -479,12 +455,12 @@ begin
 end;
 procedure TfrmPrincipal.acArcNueProExecute(Sender: TObject);
 var
-  tmpPresp: TMinProyecto;
+  tmpPresp: TCadProyecto;
 begin
   //verifica si hay que guardar cambios
   if MensajeGuardarCambios = BOT_CANCEL then exit;
   //Crea presupuesto temporal
-  tmpPresp := TMinProyecto.Create;
+  tmpPresp := TCadProyecto.Create;
   if not frmProject.ExecNew(tmpPresp) then begin
     //se canceló
     tmpPresp.Destroy;  //no nos va a servir
@@ -516,6 +492,14 @@ procedure TfrmPrincipal.acArcSalirExecute(Sender: TObject);
 begin
   Self.Close;
 end;
+
+procedure TfrmPrincipal.acProAgrPagExecute(Sender: TObject);
+begin
+  if curProject = nil then exit;  //no hay presupuesto abierto
+  curProject.AgregPagina;
+  Refrescar;
+end;
+
 procedure TfrmPrincipal.acProPropiedExecute(Sender: TObject);
 begin
   if curProject = nil then exit;

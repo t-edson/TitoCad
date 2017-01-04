@@ -26,12 +26,12 @@ type
   private
     Aceptado  : boolean;   //Indica que se ha pulsado el botón ACEPTAR
     ErrorDatos: boolean;   //Indica que hubo error de datos al Aceptar
-    presup    : TMinProyecto; //Referencia al presupuesto
+    presup    : TCadProyecto; //Referencia al presupuesto
     procRefresc: TEvRefrescar;
   public
-    function Exec(presup0: TMinProyecto; procRefrescar: TEvRefrescar;
+    function Exec(presup0: TCadProyecto; procRefrescar: TEvRefrescar;
       soloLect: boolean=false): boolean;
-    function ExecNew(presup0: TMinProyecto): boolean;
+    function ExecNew(presup0: TCadProyecto): boolean;
   end;
 
 var
@@ -72,7 +72,7 @@ begin
   Aceptado := false;
 end;
 
-function TfrmProject.Exec(presup0: TMinProyecto; procRefrescar: TEvRefrescar;
+function TfrmProject.Exec(presup0: TCadProyecto; procRefrescar: TEvRefrescar;
   soloLect: boolean): boolean;
 begin
   presup := presup0;
@@ -87,7 +87,7 @@ begin
   Self.ShowModal;  //se muestra modal
   Result := Aceptado;
 end;
-function TfrmProject.ExecNew(presup0: TMinProyecto): boolean;
+function TfrmProject.ExecNew(presup0: TCadProyecto): boolean;
 {Abre la ventana y la configura de modo apropiado, de modo que la ventana permita configurar
 las propiedades iniciales de un nuevo presupuesto.}
 var

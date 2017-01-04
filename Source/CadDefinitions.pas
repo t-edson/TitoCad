@@ -23,19 +23,31 @@ type
   end;
   TitemGraf_list = specialize TFPGObjectList<TItemGraf>;
 
-  { TMinProyecto }
-  TMinProyecto = class
+  { TCadProyecto }
+  TCadPage = class
+  private
+  public
+    nombre   : string;
+    itemsGeom : TitemGraf_list;    //Lista de elementos gráficos
+  public  //Iniicialización
+    constructor Create;
+    destructor Destroy; override;
+  end;
+  TCadPage_list = specialize TFPGObjectList<TCadPage>;
+
+  TCadProyecto = class
   private
     fModific  : boolean;   //indica si ha sido modificado
     procedure SetModific(AValue: boolean);
   public
-    nombre   : string;
+    nombre : string;
     creadoPor: string;
     notas    : string;
     unidades : Tunidades;
     OnModific : procedure of object; //Presupuesto modificado
-    itemsGeom : TitemGraf_list;    //Lista de elementos gráficos
+    pages: TCadPage_list;
     property Modific: boolean read fModific write SetModific;
+    function AgregPagina: TCadPage;
     procedure GuardarArchivo;
   public  //Iniicialización
     constructor Create;
@@ -44,9 +56,18 @@ type
 
 implementation
 
-{ TMinProyecto }
+constructor TCadPage.Create;
+begin
+  itemsGeom := TitemGraf_list.Create(true);
+end;
+destructor TCadPage.Destroy;
+begin
+  itemsGeom.Destroy;
+  inherited Destroy;
+end;
 
-procedure TMinProyecto.SetModific(AValue: boolean);
+{ TCadProyecto }
+procedure TCadProyecto.SetModific(AValue: boolean);
 begin
   if fModific=AValue then Exit;
   fModific:=AValue;
@@ -55,19 +76,30 @@ begin
   end;
 end;
 
-procedure TMinProyecto.GuardarArchivo;
+function TCadProyecto.AgregPagina: TCadPage;
+{Agrega una página al proyecto. Devuelve la referecnia a la pa´gina creada.}
+var
+  pag: TCadPage;
+begin
+  pag := TCadPage.Create;
+  pag.nombre:='Página'+IntToStr(pages.Count+1);
+  pages.Add(pag);
+  Result := pag;
+end;
+
+procedure TCadProyecto.GuardarArchivo;
 begin
 
 end;
-
-constructor TMinProyecto.Create;
+constructor TCadProyecto.Create;
 begin
-  itemsGeom := TitemGraf_list.Create(true);
+  pages:= TCadPage_list.Create(true);
+  //Crea una página
+  AgregPagina;
 end;
-
-destructor TMinProyecto.Destroy;
+destructor TCadProyecto.Destroy;
 begin
-  itemsGeom.Destroy;
+  pages.Destroy;
   inherited Destroy;
 end;
 
