@@ -4,7 +4,7 @@ unit FormControlVista;
 interface
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
-  Spin, ExtCtrls, frameEditor;
+  Spin, ExtCtrls, frameVisorGraf;
 type
 
   { TfrmControlVista }
@@ -36,9 +36,9 @@ type
       Shift: TShiftState; X, Y: Integer);
     procedure Timer1Timer(Sender: TObject);
   private
-    fraEditor: TfraGrafEditor;
+    fraEditor: TfraVisorGraf;
   public
-    procedure Exec(fraEditor0: TfraGrafEditor);
+    procedure Exec(fraEditor0: TfraVisorGraf);
   end;
 
 var
@@ -49,8 +49,8 @@ implementation
 
 procedure TfrmControlVista.btnLeerClick(Sender: TObject);
 begin
-  spnXdesp.Value:= fraEditor.xDesp;
-  spnYdesp.Value:= fraEditor.yDesp;
+  spnXdesp.Value:= fraEditor.xDes;
+  spnYdesp.Value:= fraEditor.yDes;
 
   spnXcam.Value := fraEditor.xCam;
   spnYcam.Value := fraEditor.yCam;
@@ -70,8 +70,8 @@ begin
 end;
 procedure TfrmControlVista.btnFijarClick(Sender: TObject);
 begin
-  fraEditor.xDesp := spnXdesp.Value;
-  fraEditor.yDesp := spnYdesp.Value;
+  fraEditor.xDes := spnXdesp.Value;
+  fraEditor.yDes := spnYdesp.Value;
 
   fraEditor.xCam  := spnXcam.Value;
   fraEditor.yCam  := spnYcam.Value;
@@ -97,7 +97,7 @@ begin
 //  btnLeerClick(self);  //actualiza
 end;
 
-procedure TfrmControlVista.Exec(fraEditor0: TfraGrafEditor);
+procedure TfrmControlVista.Exec(fraEditor0: TfraVisorGraf);
 begin
   fraEditor:= fraEditor0;
   self.Show;

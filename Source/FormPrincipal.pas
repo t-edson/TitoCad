@@ -1,12 +1,11 @@
 unit FormPrincipal;
 {$mode objfpc}{$H+}
 interface
-
 uses
-  Classes, SysUtils, FileUtil, SynEdit, Forms, Controls, Graphics, Dialogs,
-  ExtCtrls, ActnList, Menus, StdCtrls, Grids, ComCtrls, LCLType, Spin, LCLProc,
-  SynFacilUtils, MisUtils, FormConfig, frameEditor, FormControlVista,
-  CadDefinitions, FrameCfgGeneral, FormProject, Globales;
+  Classes, SysUtils, Forms, Controls, Graphics,
+  ExtCtrls, ActnList, Menus, StdCtrls, ComCtrls,
+  MisUtils, FormConfig, FrameCfgGeneral,
+  CadDefinitions, frameVisorGraf, FormProject, Globales, FrameExplorProyectos;
 const
   NUM_CUAD = 20;
   ZOOM_INI = 12;
@@ -15,6 +14,7 @@ type
 
   { TfrmPrincipal }
   TfrmPrincipal = class(TForm)
+  published
     acHerDesp: TAction;
     acHerPunt: TAction;
     acHerRot: TAction;
@@ -28,10 +28,11 @@ type
     acProInsCubo: TAction;
     acProInsRectan: TAction;
     acProAgrPag: TAction;
+    acPagPropied: TAction;
+    acPagCamNom: TAction;
+    acPagElim: TAction;
     acVerVisSup: TAction;
     acVerConVista: TAction;
-    arbNaveg: TTreeView;
-    Label2: TLabel;
     MenuItem10: TMenuItem;
     MenuItem11: TMenuItem;
     MenuItem12: TMenuItem;
@@ -45,6 +46,13 @@ type
     MenuItem20: TMenuItem;
     MenuItem21: TMenuItem;
     MenuItem22: TMenuItem;
+    MenuItem23: TMenuItem;
+    MenuItem24: TMenuItem;
+    MenuItem25: TMenuItem;
+    MenuItem26: TMenuItem;
+    MenuItem27: TMenuItem;
+    MenuItem28: TMenuItem;
+    MenuItem29: TMenuItem;
     MenuItem4: TMenuItem;
     MenuItem5: TMenuItem;
     acHerConfig: TAction;
@@ -61,10 +69,10 @@ type
     MenuItem8: TMenuItem;
     MenuItem9: TMenuItem;
     PageControl1: TPageControl;
-    panNaveg: TPanel;
+    PopupPagina: TPopupMenu;
     PopupProject: TPopupMenu;
     PopupGeomet: TPopupMenu;
-    Splitter1: TSplitter;
+    Splitter2: TSplitter;
     StatusBar1: TStatusBar;
     TabSheet1: TTabSheet;
     ToolBar1: TToolBar;
@@ -84,6 +92,7 @@ type
     procedure acArcGuarExecute(Sender: TObject);
     procedure acArcNueProExecute(Sender: TObject);
     procedure acArcSalirExecute(Sender: TObject);
+    procedure acPagElimExecute(Sender: TObject);
     procedure acProAgrPagExecute(Sender: TObject);
     procedure acProPropiedExecute(Sender: TObject);
     procedure acVerConVistaExecute(Sender: TObject);
@@ -95,26 +104,18 @@ type
     procedure acHerConfigExecute(Sender: TObject);
   private
     curProject: TCadProyecto;
-    fraMotEdicion: TfraGrafEditor;
-    procedure arbNavegMouseUp(Sender: TObject; Button: TMouseButton;
-      Shift: TShiftState; X, Y: Integer);
     procedure ConfigPropertiesChanged;
     procedure curPresupModific;
-    procedure fraMotEdicionmotEdiChangeView;
+    procedure curProject_ChangeActivePage;
+    procedure fraExplorProyClickDerPagina;
+    procedure fraExplorProyClickDerProyec;
+    procedure curProject_ChangeView(vista: TfraVisorGraf);
     function MensajeGuardarCambios: integer;
-    function NodoEsTablero(nod: TTreeNode): boolean;
-    function NodoProjectSelec: TTreeNode;
-    function NodoSelec: TTreeNode;
-    function NodoTablerSelec: TTreeNode;
-    function NombreNodo(nod: TTreeNode): string;
-    function NombreNodoSelec: string;
     procedure RefrescarEntorno;
-    procedure RefrescarPanelNaveg;
     procedure Refrescar;
     procedure RefrescarPanelVista;
-    procedure SeleccNodo(nom: string);
   public
-
+    fraExplorProy : TfraExplorProyectos;  //Explorador de proyectos
   end;
 
 var
@@ -124,18 +125,32 @@ implementation
 {$R *.lfm}
 const
   BOT_CANCEL    = 3;
-  MSJE_SIN_ELEM = '<Sin elementos>';
 
+procedure TfrmPrincipal.fraExplorProyClickDerProyec;
+begin
+  PopupProject.PopUp;
+end;
+procedure TfrmPrincipal.fraExplorProyClickDerPagina;
+begin
+  PopupPagina.PopUp;
+end;
 procedure TfrmPrincipal.FormCreate(Sender: TObject);
 begin
-  //Configura  fraMotEdicion
-  fraMotEdicion:= TfraGrafEditor.Create(self);
-  fraMotEdicion.Parent := TabSheet1;
-  fraMotEdicion.Visible:=true;
-  fraMotEdicion.Align:=alClient;
-  fraMotEdicion.motEdi.v2d.backColor:=clBlack;
-  fraMotEdicion.motEdi.OnChangeView:=@fraMotEdicionmotEdiChangeView;
-  arbNaveg.OnMouseUp:=@arbNavegMouseUp;
+  //Configura Explorador de proyectos
+  fraExplorProy := TfraExplorProyectos.Create(self);
+  fraExplorProy.Parent := self;
+  fraExplorProy.Name:='fraExpProy';
+  fraExplorProy.Caption:='Explorador de Proyectos1';
+  fraExplorProy.OnClickDerProyec:=@fraExplorProyClickDerProyec;
+  fraExplorProy.OnClickDerPagina:=@fraExplorProyClickDerPagina;
+  fraExplorProy.OnBorrarPagina:=@acPagElimExecute;
+  fraExplorProy.Iniciar(@curProject);
+
+  //Configura el alineamiento
+  fraExplorProy.Align:=alLeft;
+  Splitter2.Align:=alLeft;
+  fraExplorProy.Visible:=true;
+  PageControl1.Align:=alClient;
 end;
 procedure TfrmPrincipal.FormShow(Sender: TObject);
 begin
@@ -143,8 +158,6 @@ begin
   Config.Iniciar(nil);  //Inicia la configuración
   Config.OnPropertiesChanged:=@ConfigPropertiesChanged;
   ConfigPropertiesChanged;
-  fraMotEdicion.AgregaObjeto;
-  fraMotEdicion.AgregaObjeto;
   Refrescar;
 acArcNueProExecute(self);
 //acVerConVistaExecute(self);
@@ -157,14 +170,12 @@ end;
 procedure TfrmPrincipal.FormDestroy(Sender: TObject);
 begin
   if curProject<>nil then curProject.Destroy;
-  fraMotEdicion.Destroy;
 end;
 procedure TfrmPrincipal.ConfigPropertiesChanged;
 //Se cambian las propiedades de la configuración
 begin
   StatusBar1.Visible:= Config.fcGeneral.VerBarEst;
   ToolBar1.Visible := Config.fcGeneral.VerBarHer;
-//  fraMotEdicion.motEdi.incWheel:=Config.fcVista.increWheel;
   case Config.fcGeneral.StateToolbar of
   stb_SmallIcon: begin
     ToolBar1.ButtonHeight:=22;
@@ -178,78 +189,6 @@ begin
     ToolBar1.Height:=42;
     ToolBar1.Images:=ImgActions32;
   end;
-  end;
-end;
-function TfrmPrincipal.NodoSelec: TTreeNode;
-{Devuelve el nodo seleccionado actualmente. }
-begin
-  if curProject = nil then exit(nil);
-  Result := arbNaveg.Selected;
-end;
-function TfrmPrincipal.NombreNodo(nod: TTreeNode): string;
-{Devuelve el nombre de un nodo. }
-begin
-  Result := nod.Text;
-end;
-function TfrmPrincipal.NombreNodoSelec: string;
-{Devuelve el nombre del nodo seleccionado.}
-begin
-  if arbNaveg.Selected = nil then exit('');
-  Result := NombreNodo(arbNaveg.Selected);
-end;
-function TfrmPrincipal.NodoEsTablero(nod: TTreeNode): boolean;
-{Indica si el nodo seleccionado corresponde a un tablero}
-begin
-  if nod=nil then exit(false);
-  Result := (nod.Level = 1) and (nod.Text <> MSJE_SIN_ELEM);
-end;
-function TfrmPrincipal.NodoProjectSelec: TTreeNode;
-begin
-  if NodoSelec=nil then exit(nil);
-  if NodoSelec.Level = 0 then exit(NodoSelec);
-  exit(nil);
-end;
-procedure TfrmPrincipal.SeleccNodo(nom: string);
-{Seleciona un nodo en al árbol, usando su nombre. Funcionará si el árbol tiene o no enfoque.}
-var
-  nod: TTreeNode;
-begin
-  for nod in arbNaveg.Items do begin
-    if (NombreNodo(nod) = nom) then begin
-      nod.Selected:=true;
-      exit;
-    end;
-  end;
-end;
-function TfrmPrincipal.NodoTablerSelec: TTreeNode;
-begin
-  if NodoSelec=nil then exit(nil);
-  if NodoSelec.Visible = false then exit(nil);
-  if NodoEsTablero(NodoSelec) then
-    exit(NodoSelec);
-  exit(nil);
-end;
-procedure TfrmPrincipal.arbNavegMouseUp(Sender: TObject; Button: TMouseButton;
-  Shift: TShiftState; X, Y: Integer);
-var
-  nod: TTreeNode;
-begin
-  nod := arbNaveg.GetNodeAt(x, y);
-  if nod = nil then begin
-    //se marcón fuera de un nodo
-    arbNaveg.Selected := nil;
-  end;
-  //Abre menú contextual, de acuerdo al nodo seleccionado
-  if Button = mbRight then begin
-    if arbNaveg.GetNodeAt(X,Y)<>nil then arbNaveg.GetNodeAt(X,Y).Selected:=true;
-    if NodoTablerSelec<>nil then begin
-      //Menú de tablero
-      PopupGeomet.PopUp(Mouse.CursorPos.x, Mouse.CursorPos.y);
-    end;
-    if NodoProjectSelec<>nil then begin
-      //Menú de presupuesto
-      PopupProject.PopUp(Mouse.CursorPos.x, Mouse.CursorPos.y);
-    end;
   end;
 end;
 function TfrmPrincipal.MensajeGuardarCambios: integer;
@@ -372,59 +311,15 @@ begin
 //  menuRec.ActualMenusReciente(Self);
   MenuEstadoPresup;  //actualiza los menús de estado
 end;
-procedure TfrmPrincipal.RefrescarPanelNaveg;
-{Refresca el panel con los ítems del presupuesto.}
-var
-  pag: TCadPage;
-  nod: TTreeNode;
-  nodProj: TTreeNode;
-  nom: String;
-  nodCop, nodGeomet, nodVista: TTreeNode;
-  ns: String;
-begin
-  ns := NombreNodoSelec;  //guarda elemento seleccionado
-  arbNaveg.Items.Clear;  //limpia elementos
-  if curProject = nil then begin
-    //No hay presupuesto actual
-    PageControl1.Visible := false;
-    panNaveg.Visible := false;
-    exit;
-  end;
-  //Hay un presupuesto abierto
-  PageControl1.Visible := true;
-  panNaveg.Visible := true;
-  //Agrega nodo de proyecto
-  nodProj := arbNaveg.items.AddChild(nil, curProject.nombre);  //agrega presupuesto actual
-  nodProj.ImageIndex := 25;
-  nodProj.SelectedIndex:=25;
-  //Agrega nodo de las páginas
-  arbNaveg.BeginUpdate;
-  for pag in curProject.pages do begin
-     nod := arbNaveg.Items.AddChild(nodProj, pag.nombre);
-     nod.ImageIndex := 34;
-     nod.SelectedIndex:=34;
-     //Agrega campos de página
-     nodGeomet := arbNaveg.items.AddChild(nod, 'Objetos Gráficos');  //agrega presupuesto actual
-     nodGeomet.ImageIndex := 27;
-     nodGeomet.SelectedIndex:=27;
-     nodVista := arbNaveg.items.AddChild(nod, 'Vista Principal');  //agrega presupuesto actual
-     nodVista.ImageIndex := 26;
-     nodVista.SelectedIndex:=26;
-  end;
-  arbNaveg.EndUpdate;
-   //Hay ítems (tableros u otros), carga tableros
-  nodProj.Expanded:=true;   //lo deja expandido
-  SeleccNodo(ns);  //restaura la selección
-end;
 procedure TfrmPrincipal.RefrescarPanelVista;
 begin
-  fraMotEdicion.motEdi.Refrescar;
+//  fraMotEdicion.motEdi.Refrescar;
 end;
 procedure TfrmPrincipal.Refrescar;
 {Rerfresca toda la interfaz}
 begin
   RefrescarEntorno;
-  RefrescarPanelNaveg;
+  fraExplorProy.Refrescar;   //Refresca explorador de proyecto
   RefrescarPanelVista;
 end;
 procedure TfrmPrincipal.curPresupModific;
@@ -432,27 +327,32 @@ procedure TfrmPrincipal.curPresupModific;
 begin
   acArcGuar.Enabled:=true;
 end;
-procedure TfrmPrincipal.fraMotEdicionmotEdiChangeView;
+procedure TfrmPrincipal.curProject_ChangeView(vista: TfraVisorGraf);
 begin
   StatusBar1.Panels[1].Text :=
-     'Alfa=' + formatfloat('0.00', fraMotEdicion.Alfa) + ' ' +
-     'Fi=' + formatfloat('0.00', fraMotEdicion.Fi);
+     'Alfa=' + formatfloat('0.00',  vista.Alfa) + ' ' +
+     'Fi=' + formatfloat('0.00', vista.Fi);
   //FloatToStr(fraMotEdicion.Alfa);
   StatusBar1.Panels[2].Text :=
-     'Zoom=' + formatfloat('0.00', fraMotEdicion.Zoom);
+     'Zoom=' + formatfloat('0.00', vista.Zoom);
 end;
-///////////////////////////// Acciones ///////////////////////////////
-procedure TfrmPrincipal.acVerConVistaExecute(Sender: TObject);
-begin
-  frmControlVista.Exec(fraMotEdicion);
-end;
-procedure TfrmPrincipal.acVerVisSupExecute(Sender: TObject);
+procedure TfrmPrincipal.curProject_ChangeActivePage;
+{Se cambió la página activa del proyecto actual. Hay que mostrarlo en pantalla}
+var
+  ap: TCadPagina;
 begin
   if curProject=nil then exit;
-  fraMotEdicion.Alfa:=0;
-  fraMotEdicion.Fi:=0;
-  fraMotEdicion.motEdi.Refrescar;
+  //Enchufa el visor al PageControl1, para mostralo;
+  curProject.HideAllPages;   {oculta primero todas las páginas porque puede que alguna
+                              ya haya puesto su "Parent" en eset visor.}
+  ap := curProject.ActivePage;
+  ap.vista.Parent := TabSheet1;   //Lo coloca aquí
+  ap.vista.Left:=Random(200);
+  ap.vista.Top:=Random(200);
+  ap.vista.Align := alClient;
+  ap.vista.Visible := true;  //lo hace visible
 end;
+///////////////////////////// Acciones ///////////////////////////////
 procedure TfrmPrincipal.acArcNueProExecute(Sender: TObject);
 var
   tmpPresp: TCadProyecto;
@@ -470,6 +370,9 @@ begin
   acArcCerrarExecute(self);   //cierra actual si estaba abierto
   curProject := tmpPresp;  //apunta al temporal
   curProject.OnModific:=@curPresupModific;
+  curProject.OnCambiaPerspec:=@curProject_ChangeView;
+  curProject.OnChangeActivePage:=@curProject_ChangeActivePage;
+  curProject_ChangeActivePage;  //para refrescar en su visor
   //curProject.Modific:=true;
   curProject.guardarArchivo;
 //  menuRec.AgregArcReciente(curProject.GenerarNombreArch);  //Agrega archivo reciente
@@ -492,20 +395,37 @@ procedure TfrmPrincipal.acArcSalirExecute(Sender: TObject);
 begin
   Self.Close;
 end;
+procedure TfrmPrincipal.acPagElimExecute(Sender: TObject);
+begin
+  if curProject = nil then exit;
+  if MsgYesNo('¿Eliminar página "%s"?', [curProject.ActivePage.nombre]) <> 1 then exit;
+  curProject.RemovePage(curProject.ActivePage);
+  Refrescar;
+end;
+procedure TfrmPrincipal.acVerConVistaExecute(Sender: TObject);
+begin
+//  frmControlVista.Exec(fraMotEdicion);
+end;
+procedure TfrmPrincipal.acVerVisSupExecute(Sender: TObject);
+begin
+  if curProject=nil then exit;
+  curProject.ActivePage.vista.Alfa:=0;
+  curProject.ActivePage.vista.Fi:=0;
+  curProject.ActivePage.vista.motEdi.Refrescar;
+end;
 
 procedure TfrmPrincipal.acProAgrPagExecute(Sender: TObject);
 begin
   if curProject = nil then exit;  //no hay presupuesto abierto
-  curProject.AgregPagina;
+  curProject.AddPage;
   Refrescar;
 end;
-
 procedure TfrmPrincipal.acProPropiedExecute(Sender: TObject);
 begin
   if curProject = nil then exit;
   if frmProject.Exec(curProject, @RefrescarPanelVista) then begin
     curProject.Modific:=true;
-    RefrescarPanelNaveg;
+    fraExplorProy.Refrescar;
     RefrescarPanelVista;
   end;
 end;

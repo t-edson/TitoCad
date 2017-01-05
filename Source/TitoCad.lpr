@@ -8,7 +8,8 @@ uses
   {$ENDIF}{$ENDIF}
   Interfaces, // this includes the LCL widgetset
   Forms, FormPrincipal, EvalExpres, FormConfig, FrameCfgSynEdit,
-  FrameCfgGeneral, FrameCfgPanCom, FormControlVista, FrameCfgVista, FormProject
+  FrameCfgGeneral, FrameCfgPanCom, FormControlVista, FrameCfgVista, FormProject,
+  FrameExplorProyectos
   { you can add units after this };
 
 {$R *.res}
