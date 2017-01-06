@@ -1,0 +1,24 @@
+Titocad 0.2
+===========
+Se continúa adaptando la arquitectura de las librerías al descrito en el modelo del
+documento.
+Se incluye una rutina para fijar el punto de giro, siempre al centro de la pantalla.
+Se agregan métodos de identificación al explorador de proyecto.
+Se completan los menús contextuales y se crea un formulario para las propieades de 
+una vista.
+Se mueve el contenedor de objetos gráficos a la clase TCadPagina.
+
+
+Titocad 0.1
+===========
+En esta versión, se modifican las unidades y las clases del proyecto, para adaptarlas 
+a la arquitectura prevista para la aplicación. Se parte de la arquitectura de la 
+librería ogEditGraf, y sobre ella se va adaptando al nuevo esquema de TitoCad. La 
+diferencia principal con respecto a ogEditGraf, es que los contenedores de los objetos, 
+no forman parte del motor de edición.
+
+Se crea un Frame explorador de proyecto.
+
+Titocad 0.0
+===========
+Primera versión de TitoCad. Aún no es funcional.

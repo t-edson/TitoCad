@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CONFIG>
+  <General>
+    <VerBarHer Val="True"/>
+    <StateStatusbar Val="1"/>
+    <VerBarEst Val="True"/>
+  </General>
+  <Vista>
+    <VerEjesCoor Val="True"/>
+    <LongEjeCoor Val="0"/>
+    <VerCoorPunt Val="False"/>
+    <incrWheel Val="100"/>
+  </Vista>
+  <PanComGen>
+    <Prompt Val=""/>
+  </PanComGen>
+  <EdTer>
+    <cTxtNor Val="0"/>
+    <cFonEdi Val="0"/>
+    <cLinAct Val="0"/>
+    <cResPal Val="0"/>
+    <VerBarDesV Val="False"/>
+    <VerBarDesH Val="False"/>
+    <ResPalCur Val="False"/>
+    <MarLinAct Val="False"/>
+    <VerPanVer Val="False"/>
+    <VerNumLin Val="False"/>
+    <VerMarPle Val="False"/>
+    <cFonPan Val="0"/>
+    <cTxtPan Val="0"/>
+    <TamLet Val="5"/>
+    <TipLet Val=""/>
+    <recient Val=""/>
+  </EdTer>
+</CONFIG>
