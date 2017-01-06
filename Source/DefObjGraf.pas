@@ -35,6 +35,10 @@ const
   ALTO_MIN = 20;     //Alto mínimo de objetos gráficos en Twips (Coord Virtuales)
 
 type
+  TPoint3 = record   //representa a un punto virtual
+    x,y,z : Single;
+  end;
+
   { TObjVsible }
   //Clase base para todos los objetos visibles
   TObjVsible = class

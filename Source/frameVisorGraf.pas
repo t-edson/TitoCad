@@ -1,16 +1,13 @@
 {                                frameVisCplex
-Este Frame será usado para colocar nuestro editor gráfico. Requiere un  objeto TPaintBox,
-como salida gráfica. Para que funcione como editor de objetos gráficos, debe crearse una
-instancia de "TModEdicion" y darle la referencia del PaintBox.
-Aquí también se deben poner las rutinas que permiten agregar los diversos objetos
-gráficos con los que trabajará nuestra aplicación.
+Este Frame será usado para colocar nuestro editor gráfico. Incluye un PaintBox,
+como salida gráfica.
+Al ser un frame, puede incluirse en un formulario cualquiera.
 
-                                              Por Tito Hinostroza  11/05/2014
+                                              Por Tito Hinostroza  04/01/2017
 }
 unit frameVisorGraf;
 {$mode objfpc}{$H+}
 interface
-
 uses
   Classes, Forms, ExtCtrls,
   ObjGraficos, VisGraf3D, DefObjGraf;
@@ -41,7 +38,7 @@ type
     procedure SetZoom(AValue: Single);
   public
     objetos : TlistObjGraf; //Lista de objetos
-    motEdi  : TVisGraf3D;  //motor de edición
+    visEdi  : TVisGraf3D;  //motor de edición  (La idesa es que pueda haber más de uno)
     Modif   : Boolean;      //bandera para indicar Diagrama Modificado
     OnObjetosElim: TOnObjetosElim;   //cuando se elminan uno o más objetos
     OnCambiaPerspec: procedure of object; //Cambia x_des,y_des,x_cam,y_cam,alfa,fi o zoom
@@ -49,7 +46,6 @@ type
     procedure EliminarObjGrafico(obj: TObjGraf);
     procedure EliminarTodosObj;
     procedure ElimSeleccion;
-    function AgregaObjeto: TMiObjeto;
   public //Propiedades reflejadas
     property xDes: integer read GetxDes write SetxDes;
     property yDes: integer read GetyDes write SetyDes;
@@ -59,7 +55,7 @@ type
     property Fi: Single read GetFi write SetFi;
     property Zoom: Single read GetZoom write SetZoom;
   public  //Inicialización
-    constructor Create(AOwner: TComponent) ; override;
+    constructor Create(AOwner: TComponent; ListObjGraf: TlistObjGraf);
     destructor Destroy; override;
   end;
 
@@ -77,14 +73,14 @@ begin
   Modif := True;        //Marca el editor como modificado
   //Posiciona tratando de que siempre aparezca en pantalla
   if AutoPos Then begin  //Se calcula posición
-    x := motEdi.v2d.Xvirt(100, 100) + 30 * objetos.Count Mod 400;
-    y := motEdi.v2d.Yvirt(100, 100) + 30 * objetos.Count Mod 400;
+    x := visEdi.v2d.Xvirt(100, 100) + 30 * objetos.Count Mod 400;
+    y := visEdi.v2d.Yvirt(100, 100) + 30 * objetos.Count Mod 400;
     og.Ubicar(x,y);
   end;
   //configura eventos para ser controlado por este editor
-  og.OnSelec   := @motEdi.ObjGraf_Select;     //referencia a procedimiento de selección
-  og.OnDeselec := @motEdi.ObjGraf_Unselec;    //referencia a procedimiento de "de-selección"
-  og.OnCamPunt := @motEdi.ObjGraf_SetPointer; //procedimiento para cambiar el puntero
+  og.OnSelec   := @visEdi.ObjGraf_Select;     //referencia a procedimiento de selección
+  og.OnDeselec := @visEdi.ObjGraf_Unselec;    //referencia a procedimiento de "de-selección"
+  og.OnCamPunt := @visEdi.ObjGraf_SetPointer; //procedimiento para cambiar el puntero
 //  Refrescar(s)   ;             //Refresca objeto
   objetos.Add(og);               //agrega elemento
 end;
@@ -101,9 +97,9 @@ procedure TfraVisorGraf.EliminarTodosObj;
 begin
   if objetos.Count=0 then exit;  //no hay qué eliminar
   //elimina
-  motEdi.DeseleccionarTodos;  //por si acaso hay algun simbolo seleccionado
+  visEdi.DeseleccionarTodos;  //por si acaso hay algun simbolo seleccionado
   objetos.Clear;          //limpia la lista de objetos
-  motEdi.RestaurarEstado;
+  visEdi.RestaurarEstado;
   Modif := true;          //indica que se modificó
   if OnObjetosElim<>nil then OnObjetosElim;
 End;
@@ -115,57 +111,48 @@ var
 begin
   tmp := OnObjetosElim;  //guarda evento
   OnObjetosElim := nil; //para evitar llamar muchas veces
-  For v In motEdi.seleccion  do  //explora todos
+  For v In visEdi.seleccion  do  //explora todos
     EliminarObjGrafico(v);
   OnObjetosElim := tmp;  //restaura
   if OnObjetosElim<>nil then OnObjetosElim;  //llama evento
-  motEdi.Refrescar;
-end;
-
-function TfraVisorGraf.AgregaObjeto: TMiObjeto;
-//Agrega un objeto de tipo TMiObjeto al editor.
-var o: TMiObjeto;
-begin
-  o := TMiObjeto.Create(motEdi.v2d);
-  AgregarObjGrafico(o);
-  Result := o;
+  visEdi.Refrescar;
 end;
 
 function TfraVisorGraf.GetxDes: integer;
 begin
-  Result := motEdi.v2d.x_des;
+  Result := visEdi.v2d.x_des;
 end;
 procedure TfraVisorGraf.SetxDes(AValue: integer);
 begin
-  motEdi.v2d.x_des:=AValue;
+  visEdi.v2d.x_des:=AValue;
 end;
 function TfraVisorGraf.GetyDes: integer;
 begin
-  Result := motEdi.v2d.y_des;
+  Result := visEdi.v2d.y_des;
 end;
 procedure TfraVisorGraf.SetyDes(AValue: integer);
 begin
-  motEdi.v2d.y_des:=AValue;
+  visEdi.v2d.y_des:=AValue;
 end;
 function TfraVisorGraf.GetxCam: Single;
 begin
-  Result := motEdi.v2d.x_cam;
+  Result := visEdi.v2d.x_cam;
 end;
 procedure TfraVisorGraf.SetxCam(AValue: Single);
 begin
-  motEdi.v2d.x_cam:=AValue;
+  visEdi.v2d.x_cam:=AValue;
 end;
 function TfraVisorGraf.GetyCam: Single;
 begin
-  Result := motEdi.v2d.y_cam;
+  Result := visEdi.v2d.y_cam;
 end;
 procedure TfraVisorGraf.SetyCam(AValue: Single);
 begin
-  motEdi.v2d.y_cam:=AValue;
+  visEdi.v2d.y_cam:=AValue;
 end;
 function TfraVisorGraf.GetZoom: Single;
 begin
-  Result := motEdi.v2d.Zoom;
+  Result := visEdi.v2d.Zoom;
 end;
 procedure TfraVisorGraf.motEdiChangeView;
 begin
@@ -179,23 +166,23 @@ begin
 end;
 procedure TfraVisorGraf.SetZoom(AValue: Single);
 begin
-  motEdi.v2d.Zoom:=AValue;
+  visEdi.v2d.Zoom:=AValue;
 end;
 function TfraVisorGraf.GetAlfa: Single;
 begin
-  Result := motEdi.v2d.Alfa;
+  Result := visEdi.v2d.Alfa;
 end;
 procedure TfraVisorGraf.SetAlfa(AValue: Single);
 begin
-  motEdi.v2d.Alfa := AValue;
+  visEdi.v2d.Alfa := AValue;
 end;
 function TfraVisorGraf.GetFi: Single;
 begin
-  REsult := motEdi.v2d.Fi;
+  REsult := visEdi.v2d.Fi;
 end;
 procedure TfraVisorGraf.SetFi(AValue: Single);
 begin
-  motEdi.v2d.Fi := AValue;
+  visEdi.v2d.Fi := AValue;
 end;
 {procedure TVisGraf3D.KeyDown(Sender: TObject; var Key: Word;
   Shift: TShiftState);
@@ -256,21 +243,22 @@ begin
   end;
 end;}
 
-constructor TfraVisorGraf.Create(AOwner: TComponent);
+constructor TfraVisorGraf.Create(AOwner: TComponent; ListObjGraf: TlistObjGraf);
 begin
   inherited Create(AOwner);
-  objetos:= TlistObjGraf.Create(true);  //lista de objetos
-  motEdi := TVisGraf3D.Create(PaintBox1, objetos);
-  motEdi.v2d.Alfa:=0.7;
-  motEdi.v2d.Fi:=0.7;
-  motEdi.OnModif:=@motEdiModif;
-  motEdi.OnChangeView:=@motEdiChangeView;
+  objetos := ListObjGraf;  //recibe lista de objetos
+  //objetos:= TlistObjGraf.Create(true);  //lista de objetos
+  visEdi := TVisGraf3D.Create(PaintBox1, objetos);
+  visEdi.v2d.Alfa:=0.7;
+  visEdi.v2d.Fi:=0.7;
+  visEdi.OnModif:=@motEdiModif;
+  visEdi.OnChangeView:=@motEdiChangeView;
 end;
 
 destructor TfraVisorGraf.Destroy;
 begin
-  motEdi.Destroy;
-  objetos.Destroy;
+  visEdi.Destroy;
+  //objetos.Destroy;
   inherited;
 end;
 

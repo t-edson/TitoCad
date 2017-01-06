@@ -2,10 +2,10 @@ unit FormPrincipal;
 {$mode objfpc}{$H+}
 interface
 uses
-  Classes, SysUtils, Forms, Controls, Graphics,
-  ExtCtrls, ActnList, Menus, StdCtrls, ComCtrls,
-  MisUtils, FormConfig, FrameCfgGeneral,
-  CadDefinitions, frameVisorGraf, FormProject, Globales, FrameExplorProyectos;
+  Classes, SysUtils, Forms, Controls, Graphics, ExtCtrls, ActnList, Menus,
+  StdCtrls, ComCtrls, MisUtils, FormConfig, FrameCfgGeneral, FrameCfgVista,
+  CadDefinitions, frameVisorGraf, FormProject, Globales, FrameExplorProyectos,
+  FormControlVista, FormVistaProp, DefObjGraf;
 const
   NUM_CUAD = 20;
   ZOOM_INI = 12;
@@ -31,6 +31,8 @@ type
     acPagPropied: TAction;
     acPagCamNom: TAction;
     acPagElim: TAction;
+    acPagAgrLin: TAction;
+    acVisPropied: TAction;
     acVerVisSup: TAction;
     acVerConVista: TAction;
     MenuItem10: TMenuItem;
@@ -53,6 +55,8 @@ type
     MenuItem27: TMenuItem;
     MenuItem28: TMenuItem;
     MenuItem29: TMenuItem;
+    MenuItem30: TMenuItem;
+    MenuItem31: TMenuItem;
     MenuItem4: TMenuItem;
     MenuItem5: TMenuItem;
     acHerConfig: TAction;
@@ -69,9 +73,10 @@ type
     MenuItem8: TMenuItem;
     MenuItem9: TMenuItem;
     PageControl1: TPageControl;
+    PopupVista: TPopupMenu;
     PopupPagina: TPopupMenu;
     PopupProject: TPopupMenu;
-    PopupGeomet: TPopupMenu;
+    PopupObjetos: TPopupMenu;
     Splitter2: TSplitter;
     StatusBar1: TStatusBar;
     TabSheet1: TTabSheet;
@@ -92,11 +97,13 @@ type
     procedure acArcGuarExecute(Sender: TObject);
     procedure acArcNueProExecute(Sender: TObject);
     procedure acArcSalirExecute(Sender: TObject);
+    procedure acPagAgrLinExecute(Sender: TObject);
     procedure acPagElimExecute(Sender: TObject);
     procedure acProAgrPagExecute(Sender: TObject);
     procedure acProPropiedExecute(Sender: TObject);
     procedure acVerConVistaExecute(Sender: TObject);
     procedure acVerVisSupExecute(Sender: TObject);
+    procedure acVisPropiedExecute(Sender: TObject);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
@@ -104,11 +111,14 @@ type
     procedure acHerConfigExecute(Sender: TObject);
   private
     curProject: TCadProyecto;
+    curPagina : TCadPagina;
+    curVista  : TfraVisorGraf;
     procedure ConfigPropertiesChanged;
     procedure curPresupModific;
     procedure curProject_ChangeActivePage;
-    procedure fraExplorProyClickDerPagina;
-    procedure fraExplorProyClickDerProyec;
+    procedure fraExplorProy_ClickDerPagina(pag: TCadPagina);
+    procedure fraExplorProy_ClickDerProyec(pro: TCadProyecto);
+    procedure fraExplorProy_ClickDerVista(vis: TfraVisorGraf);
     procedure curProject_ChangeView(vista: TfraVisorGraf);
     function MensajeGuardarCambios: integer;
     procedure RefrescarEntorno;
@@ -126,13 +136,19 @@ implementation
 const
   BOT_CANCEL    = 3;
 
-procedure TfrmPrincipal.fraExplorProyClickDerProyec;
+procedure TfrmPrincipal.fraExplorProy_ClickDerProyec(pro: TCadProyecto);
 begin
   PopupProject.PopUp;
 end;
-procedure TfrmPrincipal.fraExplorProyClickDerPagina;
+procedure TfrmPrincipal.fraExplorProy_ClickDerPagina(pag: TCadPagina);
 begin
+  curPagina := pag;
   PopupPagina.PopUp;
+end;
+procedure TfrmPrincipal.fraExplorProy_ClickDerVista(vis: TfraVisorGraf);
+begin
+  curVista := vis;
+  PopupVista.PopUp;
 end;
 procedure TfrmPrincipal.FormCreate(Sender: TObject);
 begin
@@ -141,8 +157,9 @@ begin
   fraExplorProy.Parent := self;
   fraExplorProy.Name:='fraExpProy';
   fraExplorProy.Caption:='Explorador de Proyectos1';
-  fraExplorProy.OnClickDerProyec:=@fraExplorProyClickDerProyec;
-  fraExplorProy.OnClickDerPagina:=@fraExplorProyClickDerPagina;
+  fraExplorProy.OnClickDerProyec:=@fraExplorProy_ClickDerProyec;
+  fraExplorProy.OnClickDerPagina:=@fraExplorProy_ClickDerPagina;
+  fraExplorProy.OnClickDerVista:=@fraExplorProy_ClickDerVista;
   fraExplorProy.OnBorrarPagina:=@acPagElimExecute;
   fraExplorProy.Iniciar(@curProject);
 
@@ -395,25 +412,22 @@ procedure TfrmPrincipal.acArcSalirExecute(Sender: TObject);
 begin
   Self.Close;
 end;
-procedure TfrmPrincipal.acPagElimExecute(Sender: TObject);
-begin
-  if curProject = nil then exit;
-  if MsgYesNo('¿Eliminar página "%s"?', [curProject.ActivePage.nombre]) <> 1 then exit;
-  curProject.RemovePage(curProject.ActivePage);
-  Refrescar;
-end;
 procedure TfrmPrincipal.acVerConVistaExecute(Sender: TObject);
 begin
-//  frmControlVista.Exec(fraMotEdicion);
+  if curProject = nil then exit;
+  frmControlVista.Exec(curProject.ActivePage.vista);
 end;
 procedure TfrmPrincipal.acVerVisSupExecute(Sender: TObject);
 begin
   if curProject=nil then exit;
   curProject.ActivePage.vista.Alfa:=0;
   curProject.ActivePage.vista.Fi:=0;
-  curProject.ActivePage.vista.motEdi.Refrescar;
+  curProject.ActivePage.vista.visEdi.Refrescar;
 end;
-
+procedure TfrmPrincipal.acVisPropiedExecute(Sender: TObject);
+begin
+  frmVistaProp.Exec(curVista);
+end;
 procedure TfrmPrincipal.acProAgrPagExecute(Sender: TObject);
 begin
   if curProject = nil then exit;  //no hay presupuesto abierto
@@ -428,6 +442,24 @@ begin
     fraExplorProy.Refrescar;
     RefrescarPanelVista;
   end;
+end;
+procedure TfrmPrincipal.acPagAgrLinExecute(Sender: TObject);  //Agrega línea
+var
+  p2, p1: TPoint3;
+begin
+  p1.x:=0; p1.y:=0; p1.z := 0;
+  p2.x:=100; p2.y:=100; p2.z :=0;
+
+  curPagina.AddLine(p1, p2);
+  curPagina.vista.visEdi.Refrescar;
+  Refrescar;
+end;
+procedure TfrmPrincipal.acPagElimExecute(Sender: TObject);
+begin
+  if curProject = nil then exit;
+  if MsgYesNo('¿Eliminar página "%s"?', [curProject.ActivePage.nombre]) <> 1 then exit;
+  curProject.RemovePage(curProject.ActivePage);
+  Refrescar;
 end;
 
 procedure TfrmPrincipal.acHerConfigExecute(Sender: TObject);

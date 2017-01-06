@@ -2,8 +2,8 @@ unit CadDefinitions;
 {$mode objfpc}{$H+}
 interface
 uses
-  Classes, SysUtils, fgl,
-  frameVisorGraf, Graphics, MisUtils;   //Parra poder incluir al visor.
+  Classes, SysUtils, fgl, frameVisorGraf, DefObjGraf, ObjGraficos, Graphics,
+  MisUtils;   //Parra poder incluir al visor.
 type
 
   Tunidades = (
@@ -11,18 +11,19 @@ type
     tmuPies
   );
 
-  //Tipo de tablero
-  TDipTipTab = (
-    ttAutosoport,  //Autosoportado
-    ttEmpotrado,   //Empotrado
-    ttAdosado      //Adosado
+  //Tipo de objeto gráfico. Se sigue el estándar de Autocad
+  TCadTipObjGraf = (
+    etyLine      //línea
+   ,etyCircle    //círculo
+   ,etyPolyline  //polilínea
+   ,etyInsert    //bloque
   );
 
-  TCadObjetos = class
+  TCadObjGraf = class
     nombre: string;
-    tipTab: TDipTipTab; //tipo de tablero
+    tipTab: TCadTipObjGraf;
   end;
-  TCadObjetos_list = specialize TFPGObjectList<TCadObjetos>;
+  TCadObjetos_list = specialize TFPGObjectList<TCadObjGraf>;
 
   TEveCambiaPerspec = procedure(vista: TfraVisorGraf) of object;
   TCadProyecto = class;
@@ -33,13 +34,14 @@ type
     procedure vistaCambiaPerspec;
   public
     nombre     : string;
-    objetosGraf: TCadObjetos_list;  //Lista de elementos gráficos
     padre      : TCadProyecto;      //Referencia al objeto padre.
+    objetosGraf: TCadObjetos_list;  //Lista de elementos gráficos
+    objetos : TlistObjGraf; //Lista de objetos
+    procedure AddLine(const p1, p2: TPoint3);
   public  //Manejo de las vistas
     vista: TfraVisorGraf;   //una sola vista por el momento
     OnCambiaPerspec: TEveCambiaPerspec;  //Cambia x_des,y_des,x_cam,y_cam,alfa,fi o zoom
-    //    visores     : TCadVisor
-  public  //Iniicialización
+  public  //Inicialización
     constructor Create;
     destructor Destroy; override;
   end;
@@ -69,6 +71,7 @@ type
     function IndexOfPage(pag: TCadPagina): integer;
     function PrevPage(pag: TCadPagina): TCadPagina;
     function NextPage(pag: TCadPagina): TCadPagina;
+    function PageByName(pagName: string): TCadPagina;
     procedure SetActivePageByName(pagName: string);
     function AddPage: TCadPagina;
     procedure RemovePage(pagName: TCadPagina);
@@ -87,24 +90,52 @@ procedure TCadPagina.vistaCambiaPerspec;
 begin
   if OnCambiaPerspec<>nil then OnCambiaPerspec(self.vista);   //identifica a la página
 end;
+procedure TCadPagina.AddLine(const p1, p2: TPoint3);
+{Agrega una línea a la lista de objetos.}
+var
+  lin : TObjGrafDXF;
+begin
+  lin := TObjGrafDXF.Create(vista.visEdi.v2d);
+  lin.x0 := p1.x;
+  lin.y0 := p1.y;
+  lin.z0 := p1.y;
+
+  lin.x1:=p2.x;
+  lin.y1:=p2.y;
+  lin.z1:=p2.z;
+
+  lin.Ubicar(p1.x, p1.y);
+
+  vista.AgregarObjGrafico(lin);
+end;
 constructor TCadPagina.Create;
+var
+  og: TMiObjeto;
 begin
   objetosGraf := TCadObjetos_list.Create(true);
-  vista:= TfraVisorGraf.Create(nil);  //crea una vista
+  objetos := TlistObjGraf.Create(true);   //contenedor
+  vista:= TfraVisorGraf.Create(nil, objetos);  //crea una vista
 
 //  vista.Parent := TabSheet1;
 //  vista.Visible:=true;
 //  vista.Align:=alClient;
-  vista.motEdi.v2d.backColor:=clBlack;
-//  vista.motEdi.OnChangeView:=@fraMotEdicionmotEdiChangeView;
+  vista.visEdi.v2d.backColor:=clBlack;
+  vista.visEdi.VerEjesCoor:=true;
+  vista.visEdi.VerPuntoGiro:=true;
+  vista.visEdi.VerCuadric:=true;
+//  vista.VisEdiGraf.OnChangeView:=@fraMotEdicionmotEdiChangeView;
   vista.OnCambiaPerspec:=@vistaCambiaPerspec;
-  vista.AgregaObjeto;
-  vista.AgregaObjeto;
+
+og := TMiObjeto.Create(vista.visEdi.v2d);
+vista.AgregarObjGrafico(og);
+og := TMiObjeto.Create(vista.visEdi.v2d);
+vista.AgregarObjGrafico(og);
 
 end;
 destructor TCadPagina.Destroy;
 begin
   vista.Destroy;
+  objetos.Destroy;
   objetosGraf.Destroy;
   inherited Destroy;
 end;
@@ -184,6 +215,17 @@ begin
     exit(paginas[i+1]); //devuelve siguiente
   end;
 end;
+function TCadProyecto.PageByName(pagName: string): TCadPagina;
+{Devuelve la referencia a una página, dado su nombre. Si no encuentra la página,
+devuelve NIL.}
+var
+  pag: TCadPagina;
+begin
+  for pag in paginas do begin
+    if pag.nombre = pagName then exit(pag);
+  end;
+  exit(nil);
+end;
 procedure TCadProyecto.SetActivePageByName(pagName: string);
 var
   pag: TCadPagina;
@@ -239,7 +281,6 @@ begin
   //No encontró
   MsgExc('No existe la página: "%s"', [name]);
 end;
-
 procedure TCadProyecto.HideAllPages;
 {Pone las vistas de todas las páginas en visible := FALSE, de modo que no se mostrarán
 en el control asignado.}
