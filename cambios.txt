@@ -1,3 +1,20 @@
+Titocad 0.2.2
+=============
+Se crea el punto TMotPoint en MotGraf3D y se adecúan algunas rutinas para su uso.
+Se mejora el control de las acciones, con la posibilidad de poder identificar al control
+que disparó la acción.
+Se modifica la rutina de dibujo de los puntos de control para que aparezcan en perspectiva.
+Se modifica la rutina de selección de los puntos de control para que considere eje z.
+Se elimina el campo "posición" de TPtoCtrl, ya que no tiene sentido en el nuevo esquema.
+Se eliminan los puntos de control creados por defecto en TObjGraf, ya que en el nuevo 
+esquema, los objetos son muy variados y sus puntos de control también.
+Se modifica la clase TPtoCtrl, para adaptarla a la nueva forma de trabajo.
+
+Titocad 0.2.1
+=============
+Se agrega el objeto Línea enter los objetos gráficos y se hacen virtuales algunso métodos 
+de ObjGraf.
+
 Titocad 0.2
 ===========
 Se continúa adaptando la arquitectura de las librerías al descrito en el modelo del
