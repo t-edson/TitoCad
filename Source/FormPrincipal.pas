@@ -3,9 +3,9 @@ unit FormPrincipal;
 interface
 uses
   Classes, SysUtils, Forms, Controls, Graphics, ExtCtrls, ActnList, Menus,
-  StdCtrls, ComCtrls, MisUtils, FormConfig, FrameCfgGeneral, FrameCfgVista,
-  CadDefinitions, frameVisorGraf, FormProject, Globales, FrameExplorProyectos,
-  FormControlVista, FormVistaProp, DefObjGraf;
+  StdCtrls, ComCtrls, LCLProc, SynEdit, MisUtils, FormConfig, FrameCfgGeneral,
+  FrameCfgVista, CadDefinitions, frameVisorGraf, FormProject, Globales,
+  FrameExplorProyectos, FormControlVista, FormVistaProp, DefObjGraf;
 const
   NUM_CUAD = 20;
   ZOOM_INI = 12;
@@ -79,12 +79,14 @@ type
     PopupObjetos: TPopupMenu;
     Splitter2: TSplitter;
     StatusBar1: TStatusBar;
+    edComan: TSynEdit;
     TabSheet1: TTabSheet;
     ToolBar1: TToolBar;
     ToolButton1: TToolButton;
     ToolButton10: TToolButton;
     ToolButton11: TToolButton;
     ToolButton12: TToolButton;
+    ToolButton13: TToolButton;
     ToolButton2: TToolButton;
     ToolButton3: TToolButton;
     ToolButton4: TToolButton;
@@ -110,9 +112,9 @@ type
     procedure FormShow(Sender: TObject);
     procedure acHerConfigExecute(Sender: TObject);
   private
-    curProject: TCadProyecto;
-    curPagina : TCadPagina;
-    curVista  : TfraVisorGraf;
+    curProject  : TCadProyecto;
+    ExpProyPag  : TCadPagina;     //página seleccionada en el explorador de proyecto
+    ExpProyVis  : TfraVisorGraf;  //vista seleccionada en el explorador de proyecto
     procedure ConfigPropertiesChanged;
     procedure curPresupModific;
     procedure curProject_ChangeActivePage;
@@ -142,12 +144,12 @@ begin
 end;
 procedure TfrmPrincipal.fraExplorProy_ClickDerPagina(pag: TCadPagina);
 begin
-  curPagina := pag;
+  ExpProyPag := pag;
   PopupPagina.PopUp;
 end;
 procedure TfrmPrincipal.fraExplorProy_ClickDerVista(vis: TfraVisorGraf);
 begin
-  curVista := vis;
+  ExpProyVis := vis;
   PopupVista.PopUp;
 end;
 procedure TfrmPrincipal.FormCreate(Sender: TObject);
@@ -167,6 +169,7 @@ begin
   fraExplorProy.Align:=alLeft;
   Splitter2.Align:=alLeft;
   fraExplorProy.Visible:=true;
+  edComan.Align:=alBottom;
   PageControl1.Align:=alClient;
 end;
 procedure TfrmPrincipal.FormShow(Sender: TObject);
@@ -369,6 +372,25 @@ begin
   ap.vista.Align := alClient;
   ap.vista.Visible := true;  //lo hace visible
 end;
+function ComponentFromAction(Sender: Tobject): TComponent;
+{Devuelve el componente que disparó una acción. Si no l oubica, devuelve NIL}
+var
+  compSource: TComponent;
+begin
+  if not (Sender is Taction) then exit(nil);
+  compSource := TAction(Sender).ActionComponent;
+  //Ya tenemos el componente fuente
+  if compSource is TMenuItem then begin
+    //Es un ítem de menú, pero ¿cuál?
+    exit(TMenuItem(compSource).GetParentComponent)
+  end else if compSource is TToolButton then begin
+    //Es un botón de una barra de herramientas, pero ¿cuál?
+    exit(TToolButton(compSource).GetParentComponent)
+  end else begin
+    //Es otra cosa
+    exit(compSource)
+  end;
+end;
 ///////////////////////////// Acciones ///////////////////////////////
 procedure TfrmPrincipal.acArcNueProExecute(Sender: TObject);
 var
@@ -426,7 +448,7 @@ begin
 end;
 procedure TfrmPrincipal.acVisPropiedExecute(Sender: TObject);
 begin
-  frmVistaProp.Exec(curVista);
+  frmVistaProp.Exec(ExpProyVis);
 end;
 procedure TfrmPrincipal.acProAgrPagExecute(Sender: TObject);
 begin
@@ -446,12 +468,24 @@ end;
 procedure TfrmPrincipal.acPagAgrLinExecute(Sender: TObject);  //Agrega línea
 var
   p2, p1: TPoint3;
+  pag: TCadPagina;
 begin
-  p1.x:=0; p1.y:=0; p1.z := 0;
-  p2.x:=100; p2.y:=100; p2.z :=0;
+  if curProject=nil then exit;
+  {Se verifica si la acción viene del explorador de proyecto, porque en ese caso, para
+  darle la posibilidad de tomar acciones, sobre páginas no activas}
+  if ComponentFromAction(Sender) = PopupPagina then begin
+    pag := ExpProyPag;
+//    debugln('Del explorador.')
+  end else begin
+    pag := curProject.ActivePage;
+//    debugln('De otro lado');
+  end;
+  acPagAgrLin.Checked:=true;
+  p1.x:=0; p1.y:=0  ; p1.z := 100;
+  p2.x:=50; p2.y:=100; p2.z := 100;
 
-  curPagina.AddLine(p1, p2);
-  curPagina.vista.visEdi.Refrescar;
+  pag.AddLine(p1, p2);
+  pag.vista.visEdi.Refrescar;
   Refrescar;
 end;
 procedure TfrmPrincipal.acPagElimExecute(Sender: TObject);

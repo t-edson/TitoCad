@@ -314,7 +314,7 @@ begin
   If (Shift = [ssMiddle]) or (Shift = [ssCtrl, ssShift, ssRight]) Then begin //<Shift>+<Ctrl> + <Botón derecho>
     //Desplaza la panatalla
     EstPuntero := EP_DESP_PANT;
-    v2d.ObtenerDesplaz2( x, y, x_pulso, y_pulso, dx, dy);
+    v2d.ObtenerDesplazXY( x, y, x_pulso, y_pulso, dx, dy);
     v2d.x_cam -= dx;
     v2d.y_cam -= dy;
     x_pulso := X; y_pulso := Y;  {Tal vez deba usar otras variables aparte de x_pulso, e
@@ -324,7 +324,7 @@ begin
   end else if Shift = [ssMiddle, ssShift] then begin  //Botón central y Shift
     //Cambia ángulo de visión
     EstPuntero := EP_DESP_ANG;
-    v2d.ObtenerDesplaz2( x, y, x_pulso, y_pulso, dx, dy);
+    v2d.ObtenerDesplazXY( x, y, x_pulso, y_pulso, dx, dy);
     v2d.Alfa := v2d.Alfa + dx/100;
     v2d.Fi   := v2d.Fi + dy/100;
     x_pulso := X; y_pulso := Y;  {Tal vez deba usar otras variables aparte de x_pulso, e

@@ -2,9 +2,16 @@ unit CadDefinitions;
 {$mode objfpc}{$H+}
 interface
 uses
-  Classes, SysUtils, fgl, frameVisorGraf, DefObjGraf, ObjGraficos, Graphics,
-  MisUtils;   //Parra poder incluir al visor.
+  Classes, SysUtils, fgl, MisUtils,
+  frameVisorGraf, DefObjGraf, ObjGraficos, Graphics;
 type
+  {Usado solo para pasar parámetros geométricos.
+   Podría usarse el tipo TMotPoint, de MoTGraf3D, pero se quiere evitar una dependencia
+   más, y además, el formato de datos de TMotPoint, tiene más campos, ya que está
+   orientado al procesamiento gráfico}
+  TPoint3 = record   //representa a un punto virtual
+    x,y,z : Single;
+  end;
 
   Tunidades = (
     tmuMetros,
@@ -96,13 +103,13 @@ var
   lin : TObjGrafDXF;
 begin
   lin := TObjGrafDXF.Create(vista.visEdi.v2d);
-  lin.x0 := p1.x;
-  lin.y0 := p1.y;
-  lin.z0 := p1.y;
+  lin.P0.x := p1.x;
+  lin.P0.y := p1.y;
+  lin.P0.z := p1.z;
 
-  lin.x1:=p2.x;
-  lin.y1:=p2.y;
-  lin.z1:=p2.z;
+  lin.P1.x:=p2.x;
+  lin.P1.y:=p2.y;
+  lin.P1.z:=p2.z;
 
   lin.Ubicar(p1.x, p1.y);
 
@@ -126,8 +133,6 @@ begin
 //  vista.VisEdiGraf.OnChangeView:=@fraMotEdicionmotEdiChangeView;
   vista.OnCambiaPerspec:=@vistaCambiaPerspec;
 
-og := TMiObjeto.Create(vista.visEdi.v2d);
-vista.AgregarObjGrafico(og);
 og := TMiObjeto.Create(vista.visEdi.v2d);
 vista.AgregarObjGrafico(og);
 

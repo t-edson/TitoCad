@@ -35,15 +35,11 @@ const
   ALTO_MIN = 20;     //Alto mínimo de objetos gráficos en Twips (Coord Virtuales)
 
 type
-  TPoint3 = record   //representa a un punto virtual
-    x,y,z : Single;
-  end;
-
   { TObjVsible }
   //Clase base para todos los objetos visibles
   TObjVsible = class
   protected
-    fx,fy     : Single;    //coordenadas virtuales
+    fx,fy,fz  : Single;    //coordenadas virtuales
     v2d       : TMotGraf;  //motor gráfico
     Xant,Yant : Integer;   //coordenadas anteriores
   public
@@ -53,8 +49,9 @@ type
     Selected  : Boolean;   //indica si el objeto está seleccionado
     Visible   : boolean;   //indica si el objeto es visible
     procedure Crear(mGraf: TMotGraf; ancho0, alto0: Integer);  //no es constructor
-    procedure Ubicar(x0, y0: Single);  //Fija posición
-    function LoSelec(xr, yr: Integer): Boolean;
+    procedure Ubicar(const xv, yv, zv: Single);  //Fija posición
+    procedure Ubicar(const P: TMotPoint);  //Fija posición
+    function LoSelec(xp, yp: Integer): Boolean;
     function StartMove(xr, yr: Integer): Boolean;
     property x: Single read fx;
     property y: Single read fy;
@@ -76,8 +73,13 @@ type
     TD_INF_DER   //inferior izquierda
    );
 
-  //Procedimiento-evento para dimensionar forma
-  TEvenPCdim = procedure(x,y,ancho,alto: Single) of object;
+  {Evento que genera un putno de control cuando está siendo desplazado pro el Moues.
+  (xvTra, yvTar) es el punto objetivo a donde se espera que se ubique el punto de
+  control, y dxv/dyv, son los desplazamientos esperados de acuerdo al desplazamiento
+  del ratón. El desplazamiento final se puede obtener solo con dx y dy, pero se envía
+  también el punto objetivo, para cuando se quiera limitar el desplazamiento de un
+  punto de control.}
+  TEvPtoCtrlMoveXY = procedure(xvTar, yvTar, dxv, dyv: Single) of object;
 
   { TPtoCtrl }
   TPtoCtrl = class(TObjVsible)
@@ -85,20 +87,20 @@ type
     fTipDesplaz: TPosicPCtrol;
     procedure SetTipDesplaz(AValue: TPosicPCtrol);
   public
-    posicion   : TPosicPCtrol;  //solo hay 8 posicionnes para un punto de control
     //El tipo de desplazamiento, por lo general debe depender  nicamente de la posicion
     property tipDesplaz: TPosicPCtrol read fTipDesplaz write SetTipDesplaz;
-    constructor Crear(mGraf: TMotGraf; PosicPCtrol, tipDesplaz0: TPosicPCtrol;
-      EvenPCdim0: TEvenPCdim);
+    constructor Crear(mGraf: TMotGraf; tipDesplaz0: TPosicPCtrol;
+      ProcMove: TEvPtoCtrlMoveXY);
     procedure Dibujar();
-    procedure StartMove(xr, yr: Integer; x0, y0, ancho0, alto0: Single);
+    procedure StartMove(xr, yr: Integer; x0, y0: Single);
     procedure Mover(xr, yr: Integer);  //Dimensiona las variables indicadas
     procedure MouseUp(Button: TMouseButton; Shift: TShiftState; xp, yp: Integer);
     function LoSelec(xp, yp: Integer):boolean;
   private
-    tipPuntero : Integer;  //Tipo de puntero
-    EvenPCdim: TEvenPCdim;  //manejador de Evento
-    x1, y1, ancho1, alto1: Single;  //valores objetivo para las dimensiones
+    tipPuntero: Integer;  //Tipo de puntero
+    OnPtoCtrlMoveXY : TEvPtoCtrlMoveXY;  //Evento de desplazamiento del Pto de Control.
+    xvTar, yvTar: Single;  {Coordenadas objetivo para las dimensiones. Usada para generar
+                            el evento OnPCdimen}
   end;
   TPtosControl = specialize TFPGObjectList<TPtoCtrl>;  //Lista para gestionar los puntos de control
 
@@ -140,20 +142,10 @@ type
    motor de edición}
   TObjGraf = class(TObjVsible)
   private
-    procedure ProcPCdim(x0, y0, ancho0, alto0: Single);
   protected
     pcx        : TPtoCtrl;      //variable para Punto de Control
     PtosControl: TPtosControl;  //Lista de puntos de control
     Buttons    : TogButtons;    //Lista para contener botones
-    //puntos de control por defecto
-    pc_SUP_IZQ: TPtoCtrl;
-    pc_SUP_CEN: TPtoCtrl;
-    pc_SUP_DER: TPtoCtrl;
-    pc_CEN_IZQ: TPtoCtrl;
-    pc_CEN_DER: TPtoCtrl;
-    pc_INF_IZQ: TPtoCtrl;
-    pc_INF_CEN: TPtoCtrl;
-    pc_INF_DER: TPtoCtrl;
     procedure ReubicElemen; virtual;
     procedure ReConstGeom; virtual; //Reconstruye la geometría del objeto
     function SelecPtoControl(xp, yp: integer): TPtoCtrl;
@@ -183,7 +175,7 @@ type
     procedure Deselec;       //Método único para quitar la selección del objeto
     procedure Delete;        //Método para eliminar el objeto
     procedure Mover(xr, yr : Integer; nobjetos : Integer); virtual;
-    function LoSelecciona(xr, yr:integer): Boolean;
+    function LoSelecciona(xr, yr:integer): Boolean; virtual;
     procedure Dibujar; virtual;  //Dibuja el objeto gráfico
     procedure StartMove(xr, yr : Integer);
     procedure MouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState;
@@ -193,7 +185,8 @@ type
     procedure MouseMove(Sender: TObject; Shift: TShiftState; xp, yp: Integer); virtual;
     procedure MouseWheel(Sender: TObject; Shift: TShiftState; WheelDelta: Integer;
                  MousePos: TPoint; var Handled: Boolean); virtual;
-    function AgregarPtoControl(PosicPCtrol, tipDesplaz0: TPosicPCtrol): TPtoCtrl;
+    function AddPtoControl(tipDesplaz0: TPosicPCtrol; ProcDimen: TEvPtoCtrlMoveXY
+      ): TPtoCtrl;
     function AddButton(ancho0, alto0: Integer; tipo0: TTipBot;
       EvenBTclk0: TEvenBTclk): TogButton;
     constructor Create(mGraf: TMotGraf); virtual;
@@ -214,16 +207,26 @@ begin
   height :=alto0;
   visible := true;
 end;
-procedure TObjVsible.Ubicar(x0, y0: Single);
+procedure TObjVsible.Ubicar(const xv, yv, zv: Single);
+{Ubica en coordenadas virtuales}
 begin
-  fx := x0;
-  fy := y0;
+  fx := xv;
+  fy := yv;
+  fz := zv;
 end;
-function TObjVsible.LoSelec(xr, yr: Integer): Boolean;
-//Indica si las coordenadas de ratón seleccionan al botón en su posición actual
+procedure TObjVsible.Ubicar(const P: TMotPoint);
+{Ubica en coordenadas virtuales}
+begin
+  fx := P.x;
+  fy := P.y;
+  fz := P.z;
+end;
+
+function TObjVsible.LoSelec(xp, yp: Integer): Boolean;
+//Indica si las coordenadas de ratón seleccionan al objeto en su posición actual
 var xv, yv: Single;    //coordenadas virtuales
 begin
-    v2d.XYvirt(xr, yr, 0, xv, yv);
+    v2d.XYvirt(xp, yp, 0, xv, yv);
     LoSelec := False;    //valor por defecto
     If (xv > fx - 2) And (xv < fx + width + 2) And
        (yv > fy - 2) And (yv < fy + height + 2) Then
@@ -354,14 +357,15 @@ begin
   Erased := true;
 end;
 procedure TObjGraf.Mover(xr, yr: Integer; nobjetos: Integer);
-{Metodo que funciona como evento movimiento al objeto
-"nobjetos" es la cantidad de objetos que se mueven. Ususalmente es sólo uno}
+{Metodo que funciona como evento MouseMove del objeto. Lo normales que produzca un
+ desplazamiento del objeto.
+"nobjetos" es la cantidad de objetos que se mueven. Usualmente es sólo uno}
 var dx , dy: Single;
 begin
 //     If ArrastBoton Then Exit;       //Arrastrando botón  { TODO : Revisar }
 //     If ArrastFila Then Exit;        //Arrastrando botón  { TODO : Revisar }
      If Selected Then begin
-        v2d.ObtenerDesplaz2( xr, yr, Xant, Yant, dx, dy);
+        v2d.ObtenerDesplazXY( xr, yr, Xant, Yant, dx, dy);
         if Proceso then   //algún elemento del objeto ha procesado el evento de movimiento
            begin
               if pcx <> NIL then begin
@@ -425,7 +429,7 @@ begin
   //Busca si algún punto de control lo procesa
   pcx := SelecPtoControl(xr,yr);
   if pcx <> NIL  then begin
-      pcx.StartMove(xr, yr, fx, fy,width,height);     //prepara para movimiento fy dimensionamiento
+      pcx.StartMove(xr, yr, fx, fy);     //prepara para movimiento fy dimensionamiento
       Proceso := True;      //Marcar para indicar al editor fy a Mover() que este objeto procesará
                             //el evento fy no se lo pasé a los demás que pueden estar seleccionados.
       Resizing := True; //Marca bandera
@@ -490,7 +494,6 @@ procedure TObjGraf.MouseWheel(Sender: TObject; Shift: TShiftState;
 begin
 
 end;
-
 constructor TObjGraf.Create(mGraf: TMotGraf);
 begin
   inherited Create;
@@ -507,44 +510,11 @@ begin
   Proceso := false;
   DibSimplif := false;
   Highlight := true;
-  //Crea puntos de control estándar. Luego se pueden eliminar fy crear nuevos o modificar
-  //estos puntos de control.
-  pc_SUP_IZQ:=AgregarPtoControl(TD_SUP_IZQ, TD_SUP_IZQ);
-  pc_SUP_CEN:=AgregarPtoControl(TD_SUP_CEN, TD_SUP_CEN);
-  pc_SUP_DER:=AgregarPtoControl(TD_SUP_DER, TD_SUP_DER);
-  pc_CEN_IZQ:=AgregarPtoControl(TD_CEN_IZQ, TD_CEN_IZQ);
-  pc_CEN_DER:=AgregarPtoControl(TD_CEN_DER, TD_CEN_DER);
-  pc_INF_IZQ:=AgregarPtoControl(TD_INF_IZQ, TD_INF_IZQ);
-  pc_INF_CEN:=AgregarPtoControl(TD_INF_CEN, TD_INF_CEN);
-  pc_INF_DER:=AgregarPtoControl(TD_INF_DER, TD_INF_DER);
 end;
 procedure TObjGraf.ReubicElemen;
-var pc: TPtoCtrl;
 begin
-  //ubica puntos de control
-  for pc in PtosControl do begin
-    case pc.posicion of
-    TD_SUP_IZQ:  //superior izquierda, desplaza width (por izquierda) fy height (por arriba)
-      pc.Ubicar(fx,fy);
-    TD_SUP_CEN:  //superior central, desplaza height por arriba
-      pc.Ubicar(fx+width/2,fy);
-    TD_SUP_DER:  //superior derecha, desplaza width (por derecha) fy height (por arriba)
-      pc.Ubicar(fx+width,fy);
+  //Deberúa ubicar puntos de control, pero eso es tarea de la implementación
 
-    TD_CEN_IZQ:  //central izquierda, desplaza width (por izquierda)
-      pc.Ubicar(fx,fy+height/2);
-    TD_CEN_DER:  //central derecha, desplaza width (por derecha)
-      pc.Ubicar(fx+width,fy+height/2);
-
-    TD_INF_IZQ:  //inferior izquierda
-      pc.Ubicar(fx,fy+height);
-    TD_INF_CEN:  //inferior central
-      pc.Ubicar(fx+width/2,fy+height);
-    TD_INF_DER:   //inferior izquierda
-      pc.Ubicar(fx+width,fy+height);
-    else  //otra ubicación no lo reubica
-    end;
-  end;
 end;
 procedure TObjGraf.ReConstGeom;
 begin
@@ -572,30 +542,12 @@ begin
   Result.height := alto0;
   Buttons.Add(Result);
 end;
-function TObjGraf.AgregarPtoControl(PosicPCtrol, tipDesplaz0: TPosicPCtrol): TPtoCtrl;
+function TObjGraf.AddPtoControl(tipDesplaz0: TPosicPCtrol; ProcDimen: TEvPtoCtrlMoveXY): TPtoCtrl;
 //Agrega un punto de control
 begin
-  Result := TPtoCtrl.Crear(v2d, PosicPCtrol, tipDesplaz0, @ProcPCdim);
+  Result := TPtoCtrl.Crear(v2d, tipDesplaz0, ProcDimen);
   PtosControl.Add(Result);
 end;
-procedure TObjGraf.ProcPCdim(x0, y0, ancho0, alto0: Single);
-//Se usa para atender los requerimientos de los puntos de control cuando quieren
-//cambiar el tamaño del objeto.
-begin
-  //verifica validez de cambio de width
-  if ancho0 >= ANCHO_MIN then begin
-     width := ancho0;
-     fx := x0;  //solo si cambió el width, se permite modificar la posición
-//     fil.ancho:= ancho0-6;  //actualiza tabla de campos
-  end;
-  //verifica validez de cambio de height
-  if alto0 >= ALTO_MIN then begin
-     height := alto0;
-     fy := y0; //solo si cambió el height, se permite modificar la posición
-  end;
-  ReConstGeom;       //reconstruye la geometría
-end;
-
  //////////////////////////////  TPtoCtrl  //////////////////////////////
 procedure TPtoCtrl.SetTipDesplaz(AValue: TPosicPCtrol);
 //CAmbiando el tipo de desplazamiento se define el tipo de puntero
@@ -617,36 +569,33 @@ begin
   else        tipPuntero := crDefault ;
   end;
 end;
-constructor TPtoCtrl.Crear(mGraf: TMotGraf; PosicPCtrol, tipDesplaz0: TPosicPCtrol;
-  EvenPCdim0: TEvenPCdim);
+constructor TPtoCtrl.Crear(mGraf: TMotGraf; tipDesplaz0: TPosicPCtrol;
+  ProcMove: TEvPtoCtrlMoveXY);
 begin
   inherited Crear(mGraf, 2*ANC_PCT2, 2*ANC_PCT2);    //crea
-  posicion := PosicPCtrol;  //donde aparecerá en el objeto
   tipDesplaz := tipDesplaz0;  //actualiza propiedad
-  EvenPCdim := EvenPCdim0;     //Asigna evento para cambiar dimensiones
+  OnPtoCtrlMoveXY := ProcMove;     //Asigna evento para cambiar dimensiones
   visible := true;             //lo hace visible
   fx :=0;
   fy :=0;
 end;
 procedure TPtoCtrl.Dibujar();
 //Dibuja el Punto de control en la posición definida
-var xp, yp: Integer;
 begin
     if not visible then exit;    //validación
-    v2d.XYpant(fx, fy, 0, xp, yp);    //obtiene coordenadas de pantalla
-    v2d.Barra0(xp - ANC_PCT2, yp - ANC_PCT2,
-               xp + ANC_PCT2, yp + ANC_PCT2, clNavy);  //siempre de tamaño fijo
+    v2d.SetPen(TColor($FF8000), 1);
+    v2d.FijaRelleno(TColor($FF8000));
+    v2d.rectangXYr(fx - ANC_PCT2, fy - ANC_PCT2,
+                   fx + ANC_PCT2, fy + ANC_PCT2, fz);
 end;
-procedure TPtoCtrl.StartMove(xr, yr: Integer; x0, y0, ancho0, alto0: Single);
+procedure TPtoCtrl.StartMove(xr, yr: Integer; x0, y0: Single);
 //Procedimiento para procesar el evento StartMove del punto de control
 begin
     if not visible then exit;    //validación
     inherited StartMove(xr,yr);
-    //captura los valores iniciales de las dimensiones
-    x1 := x0;
-    y1 := y0;
-    ancho1 := ancho0;
-    alto1 := alto0;
+    {Inicia en las coordenadas actuales del Pto de Control, }
+    xvTar := fx;
+    yvTar := fy;
 end;
 procedure TPtoCtrl.Mover(xr, yr: Integer);
 //Realiza el cambio de las variables indicadas de acuerdo al tipo de control y a
@@ -654,22 +603,11 @@ procedure TPtoCtrl.Mover(xr, yr: Integer);
 var dx, dy: Single;
 begin
     if not visible then exit;    //validación
-    dx := (xr - Xant) / v2d.Zoom;     //obtiene desplazamiento absoluto
-    dy := (yr - Yant) / v2d.Zoom;     //obtiene desplazamiento absoluto
-    if EvenPCdim=NIL then exit;    //protección
-    case tipDesplaz of
-    TD_SUP_IZQ: EvenPCdim(x1+dx, y1+dy, ancho1-dx, alto1-dy);
-    TD_SUP_CEN: EvenPCdim(x1, y1+dy, ancho1, alto1-dy);
-    TD_SUP_DER: EvenPCdim(x1, y1+dy, ancho1+dx, alto1-dy);
-
-    TD_CEN_IZQ: EvenPCdim(x1+dx, y1, ancho1-dx, alto1);
-    TD_CEN_DER: EvenPCdim(x1, y1, ancho1+dx, alto1);
-
-    TD_INF_IZQ: EvenPCdim(x1+dx, y1, ancho1-dx, alto1+dy);
-    TD_INF_CEN: EvenPCdim(x1, y1, ancho1, alto1+dy);
-    TD_INF_DER: EvenPCdim(x1, y1, ancho1+dx, alto1+dy);
-  end;
-//  Xant := xr; Yant := yr;   //actualiza coordenadas
+    v2d.ObtenerDesplazXY(xr, yr, Xant, Yant, dx, dy);
+    if OnPtoCtrlMoveXY <>nil then OnPtoCtrlMoveXY(xvTar, yvTar, dx, dy);
+    xvTar := xvTar + dx;
+    yvTar := yvTar + dy;
+    Xant := xr; Yant := yr;   //actualiza, para el cálculo de ObtenerDesplazXY()
 end;
 procedure TPtoCtrl.MouseUp(Button: TMouseButton; Shift: TShiftState; xp,  yp: Integer);
 //Procesa el evento MouseUp del "mouse".
@@ -681,7 +619,7 @@ var xp0, yp0 : Integer; //corodenadas virtuales
 begin
     LoSelec := False;
     if not visible then exit;    //validación
-    v2d.XYpant(fx, fy, 0, xp0, yp0);   //obtiene sus coordenadas en pantalla
+    v2d.XYpant(fx, fy, fz, xp0, yp0);   //obtiene sus coordenadas en pantalla
     //compara en coordenadas de pantalla
     If (xp >= xp0 - ANC_PCT2) And (xp <= xp0 + ANC_PCT2) And
        (yp >= yp0 - ANC_PCT2) And (yp <= yp0 + ANC_PCT2) Then
