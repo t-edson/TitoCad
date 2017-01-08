@@ -117,8 +117,6 @@ type
     ExpProyVis  : TfraVisorGraf;  //vista seleccionada en el explorador de proyecto
     procedure ConfigPropertiesChanged;
     procedure curPresupModific;
-    procedure curProject_MouseMoveVirt(Shift: TShiftState; xp, yp: Integer; xv,
-      yv, zv: Single);
     procedure curProject_ChangeActivePage;
     procedure fraExplorProy_ClickDerPagina(pag: TCadPagina);
     procedure fraExplorProy_ClickDerProyec(pro: TCadProyecto);
@@ -349,14 +347,6 @@ procedure TfrmPrincipal.curPresupModific;
 begin
   acArcGuar.Enabled:=true;
 end;
-procedure TfrmPrincipal.curProject_MouseMoveVirt(Shift: TShiftState; xp,
-  yp: Integer; xv, yv, zv: Single);
-begin
-  StatusBar1.Panels[3].Text :=
-     'x=' + formatfloat('0.00', xv) + ' ' +
-     'y=' + formatfloat('0.00', yv) + ' ' +
-     'z=' + formatfloat('0.00', zv);
-end;
 procedure TfrmPrincipal.curProject_ChangeView(vista: TfraVisorGraf);
 begin
   StatusBar1.Panels[1].Text :=
@@ -421,9 +411,7 @@ begin
   curProject.OnModific:=@curPresupModific;
   curProject.OnCambiaPerspec:=@curProject_ChangeView;
   curProject.OnChangeActivePage:=@curProject_ChangeActivePage;
-  curProject.OnMouseMoveVirt:=@curProject_MouseMoveVirt;
   curProject_ChangeActivePage;  //para refrescar en su visor
-  curProject.ActivePage.vista.InicVista;  //inicia los ejes
   //curProject.Modific:=true;
   curProject.guardarArchivo;
 //  menuRec.AgregArcReciente(curProject.GenerarNombreArch);  //Agrega archivo reciente

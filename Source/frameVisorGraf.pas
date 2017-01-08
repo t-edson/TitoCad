@@ -13,10 +13,6 @@ uses
   ObjGraficos, VisGraf3D, DefObjGraf;
 type
   TOnObjetosElim = procedure of object;
-  {Evento para movimiento del Mouse. Notar que además de las coordenaadas del ratón,
-  proporciona coordenadas virtuales}
-  TEveMouseVisGraf = procedure(Shift: TShiftState; xp, yp: Integer;
-                                      xv, yv, zv: Single) of object;
 
   { TfraVisorGraf }
 
@@ -40,15 +36,12 @@ type
     procedure SetyDes(AValue: integer);
     function GetyDes: integer;
     procedure SetZoom(AValue: Single);
-    procedure visEdiMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer
-      );
   public
     objetos : TlistObjGraf; //Lista de objetos
     visEdi  : TVisGraf3D;  //motor de edición  (La idesa es que pueda haber más de uno)
     Modif   : Boolean;      //bandera para indicar Diagrama Modificado
     OnObjetosElim: TOnObjetosElim;   //cuando se elminan uno o más objetos
     OnCambiaPerspec: procedure of object; //Cambia x_des,y_des,x_cam,y_cam,alfa,fi o zoom
-    OnMouseMoveVirt: TEveMouseVisGraf;
     procedure AgregarObjGrafico(og: TObjGraf; AutoPos: boolean=true);
     procedure EliminarObjGrafico(obj: TObjGraf);
     procedure EliminarTodosObj;
@@ -62,7 +55,6 @@ type
     property Fi: Single read GetFi write SetFi;
     property Zoom: Single read GetZoom write SetZoom;
   public  //Inicialización
-    procedure InicVista;
     constructor Create(AOwner: TComponent; ListObjGraf: TlistObjGraf);
     destructor Destroy; override;
   end;
@@ -125,6 +117,7 @@ begin
   if OnObjetosElim<>nil then OnObjetosElim;  //llama evento
   visEdi.Refrescar;
 end;
+
 function TfraVisorGraf.GetxDes: integer;
 begin
   Result := visEdi.v2d.x_des;
@@ -175,16 +168,6 @@ procedure TfraVisorGraf.SetZoom(AValue: Single);
 begin
   visEdi.v2d.Zoom:=AValue;
 end;
-
-procedure TfraVisorGraf.visEdiMouseMove(Sender: TObject; Shift: TShiftState; X,
-  Y: Integer);
-var
-  xv, yv: Single;
-begin
-  visEdi.v2d.XYvirt(X, Y, 0, xv, yv);
-  if OnMouseMoveVirt<>nil then OnMouseMoveVirt(Shift, X, Y, xv, yv, 0);
-end;
-
 function TfraVisorGraf.GetAlfa: Single;
 begin
   Result := visEdi.v2d.Alfa;
@@ -259,27 +242,17 @@ begin
     picSal.MousePointer := vbSizeAll;  //indica modo Zoom + desplazamiento
   end;
 end;}
-procedure TfraVisorGraf.InicVista;
-{Ubica la perspectiva y los ejes, de forma que el origen (0,0) aparezza en la
-esquina inferior izquierda. Se debe llamar cuando ya el frame tenga su tamaño final}
-begin
-  visEdi.v2d.Alfa:=0;
-  visEdi.v2d.Fi:=0;
-  visEdi.v2d.Zoom:=0.5;
-  //Ubica (0,0) a 10 pixeles del ángulo inferior izquierdo
-  visEdi.v2d.x_cam:=((PaintBox1.Width div 2)-10)/visEdi.v2d.Zoom;
-  visEdi.v2d.y_cam:=((PaintBox1.Height div 2)-10)/visEdi.v2d.Zoom;
-end;
+
 constructor TfraVisorGraf.Create(AOwner: TComponent; ListObjGraf: TlistObjGraf);
 begin
   inherited Create(AOwner);
   objetos := ListObjGraf;  //recibe lista de objetos
   //objetos:= TlistObjGraf.Create(true);  //lista de objetos
   visEdi := TVisGraf3D.Create(PaintBox1, objetos);
-
+  visEdi.v2d.Alfa:=0.7;
+  visEdi.v2d.Fi:=0.7;
   visEdi.OnModif:=@motEdiModif;
   visEdi.OnChangeView:=@motEdiChangeView;
-  visEdi.OnMouseMove:=@visEdiMouseMove;
 end;
 
 destructor TfraVisorGraf.Destroy;

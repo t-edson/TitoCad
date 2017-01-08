@@ -23,13 +23,10 @@ object frmPrincipal: TfrmPrincipal
         Width = 100
       end    
       item
-        Width = 120
+        Width = 130
       end    
       item
-        Width = 80
-      end    
-      item
-        Width = 150
+        Width = 100
       end    
       item
         Width = 50
