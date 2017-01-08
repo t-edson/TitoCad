@@ -35,9 +35,8 @@ unit VisGraf3D;
 {$mode objfpc}{$H+}
 INTERFACE
 uses
-  Classes, Controls, ExtCtrls, Graphics,
+  Classes, Controls, ExtCtrls, Graphics, LCLProc,
   MotGraf3D, DefObjGraf;
-
 const
   CUR_DEFEC = crDefault;          //cursor por defecto
 
@@ -89,6 +88,9 @@ type
     OnChangeView: procedure of object;
     OnModif     : procedure of object;   //Este visor indica los cambios con este evento
   public
+    xvPtr       : Single;   //coordenadas cirtuales del puntero
+    yvPtr       : Single;   //coordenadas cirtuales del puntero
+    zvPtr       : Single;   //coordenadas cirtuales del puntero
     objetos     : TlistObjGraf; //referencia a la lisat de objetos
     seleccion   : TlistObjGraf;
     v2d         : TMotGraf;    //salida gráfica
@@ -310,6 +312,8 @@ var
   s: TObjGraf;
   dx, dy: Single;
 begin
+  zvPtr := 0;   //fijamos el plano de trabajo en z=0
+  v2d.XYvirt(X,Y,zvPtr, xvPtr, yvPtr);
   if OnMouseMove<>nil then OnMouseMove(Sender, Shift, X, Y);
   If (Shift = [ssMiddle]) or (Shift = [ssCtrl, ssShift, ssRight]) Then begin //<Shift>+<Ctrl> + <Botón derecho>
     //Desplaza la panatalla
@@ -371,12 +375,51 @@ end;
 procedure TVisGraf3D.Paint(Sender: TObject);
 var
   o:TObjGraf;
-  x, y: Single;
+  x, y, xCuad1, xCuad2, yCuad1, yCuad2: Single;
+  nCuad, ix, distCub, paso: Integer;
 begin
-//    PB.canvas.Brush.Color := clWhite; //rgb(255,255,255);
-//    PB.canvas.FillRect(PB.ClientRect); //fondo
+debugln('Pintando.');
     v2d.Clear;
     If EstPuntero = EP_SELECMULT Then DibujRecSeleccion;
+    if VerCuadric then begin
+      //Muestra cuadrícula
+      v2d.SetPen(TColor($404040),1);
+      if v2d.Zoom > 7 then begin
+        distCub := 100;  //distancia cubierta (valor virtual)
+        paso := 10;      //ancho del paso (valor virtual)
+      end else if v2d.Zoom > 3 then begin
+        distCub := 200;  //distancia cubierta (valor virtual)
+        paso := 20;      //ancho del paso (valor virtual)
+      end else if v2d.Zoom > 1 then begin
+        distCub := 600;  //distancia cubierta (valor virtual)
+        paso := 50;      //ancho del paso (valor virtual)
+      end else begin
+        distCub := 1200;  //distancia cubierta (valor virtual)
+        paso := 100;      //ancho del paso (valor virtual)
+      end;
+      nCuad := distCub div paso;
+
+//      xCuad1 := 0;
+//      xCuad2 := 1000;
+      xCuad1 := int((v2d.x_cam - distCub/2)/paso)*paso;
+      xCuad2 := xCuad1 + distCub;
+
+//      yCuad1 := 0;
+//      yCuad2 := 1000;
+      yCuad1 := int((v2d.y_cam - distCub/2)/paso)*paso;
+      yCuad2 := yCuad1 + distCub;
+
+      x := xCuad1;
+      for ix := 0 to nCuad do begin
+        v2d.Line(x,yCuad1,0, x, yCuad2, 0);
+        x := x + paso;
+      end;
+      y := yCuad1;
+      for ix := 0 to nCuad do begin
+        v2d.Line(xCuad1, y, 0, xCuad2, y, 0);
+        y := y + paso;
+      end;
+    end;
     //Dibuja objetos
     for o In objetos do begin
       o.Dibujar;
@@ -397,6 +440,14 @@ begin
       v2d.Line(x-30,y,0,  x+30,y,0);
       v2d.Line(x, y-30,0, x, y+30,0);
     end;
+    //Dibuja puntero del mouse  (No es apropiado porque necesita refescar siempre.)
+//    v2d.SetPen(clWhite, 1);
+//    v2d.Line(xvPtr-30, yvPtr, zvPtr,
+//             xvPtr+30, yvPtr, zvPtr);
+//    v2d.Line(xvPtr, yvPtr-30, zvPtr,
+//             xvPtr, yvPtr+30, zvPtr);
+//    v2d.Line(xvPtr, yvPtr, zvPtr-30,
+//             xvPtr, yvPtr, zvPtr+30);
 end;
 procedure TVisGraf3D.Refrescar();  //   Optional s: TObjGraf = Nothing
 begin
@@ -414,6 +465,10 @@ begin
   if Shift = [ssShift] then begin
     if WheelDelta>0 then d := incWheel else d := -incWheel;
     v2d.Fi := v2d.Fi + d;
+  end;
+  if Shift = [] then begin
+    if WheelDelta>0 then v2d.Zoom:=v2d.Zoom*1.2
+    else v2d.Zoom:=v2d.Zoom/1.2;
   end;
   Refrescar;
 end;

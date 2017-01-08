@@ -39,6 +39,8 @@ type
   TCadPagina = class
   private
     procedure vistaCambiaPerspec;
+    procedure vistaMouseMoveVirt(Shift: TShiftState; xp, yp: Integer; xv,
+      yv, zv: Single);
   public
     nombre     : string;
     padre      : TCadProyecto;      //Referencia al objeto padre.
@@ -48,6 +50,7 @@ type
   public  //Manejo de las vistas
     vista: TfraVisorGraf;   //una sola vista por el momento
     OnCambiaPerspec: TEveCambiaPerspec;  //Cambia x_des,y_des,x_cam,y_cam,alfa,fi o zoom
+    OnMouseMoveVirt: TEveMouseVisGraf;
   public  //Inicialización
     constructor Create;
     destructor Destroy; override;
@@ -59,7 +62,9 @@ type
   private
     FActivePage: TCadPagina;
     fModific  : boolean;   //indica si ha sido modificado
-    procedure pagCambiaPerspec(vista: TfraVisorGraf);
+    procedure pag_CambiaPerspec(vista: TfraVisorGraf);
+    procedure pag_MouseMoveVirt(Shift: TShiftState; xp, yp: Integer; xv,
+      yv, zv: Single);
     procedure SetActivePage(AValue: TCadPagina);
     procedure SetModific(AValue: boolean);
   public
@@ -69,6 +74,7 @@ type
     unidades : Tunidades;
     OnModific : procedure of object; //Proyecto modificado
     OnCambiaPerspec: TEveCambiaPerspec;  //Cambia x_des, y_des, x_cam, alfa, ...
+    OnMouseMoveVirt: TEveMouseVisGraf;
     property Modific: boolean read fModific write SetModific;
     procedure GuardarArchivo;
   public  //Campos de página
@@ -97,6 +103,13 @@ procedure TCadPagina.vistaCambiaPerspec;
 begin
   if OnCambiaPerspec<>nil then OnCambiaPerspec(self.vista);   //identifica a la página
 end;
+
+procedure TCadPagina.vistaMouseMoveVirt(Shift: TShiftState; xp, yp: Integer;
+  xv, yv, zv: Single);
+begin
+  if OnMouseMoveVirt<>nil then OnMouseMoveVirt(Shift, xp, yp, xv, yv, 0);
+end;
+
 procedure TCadPagina.AddLine(const p1, p2: TPoint3);
 {Agrega una línea a la lista de objetos.}
 var
@@ -132,6 +145,7 @@ begin
   vista.visEdi.VerCuadric:=true;
 //  vista.VisEdiGraf.OnChangeView:=@fraMotEdicionmotEdiChangeView;
   vista.OnCambiaPerspec:=@vistaCambiaPerspec;
+  vista.OnMouseMoveVirt:=@vistaMouseMoveVirt;
 
 og := TMiObjeto.Create(vista.visEdi.v2d);
 vista.AgregarObjGrafico(og);
@@ -153,10 +167,15 @@ begin
     if OnModific<>nil then OnModific;  //evento
   end;
 end;
-procedure TCadProyecto.pagCambiaPerspec(vista: TfraVisorGraf);
+procedure TCadProyecto.pag_CambiaPerspec(vista: TfraVisorGraf);
 {Se genera si alguna página cambia su perspectiva}
 begin
   if OnCambiaPerspec<>nil then OnCambiaPerspec(vista);
+end;
+procedure TCadProyecto.pag_MouseMoveVirt(Shift: TShiftState; xp, yp: Integer;
+  xv, yv, zv: Single);
+begin
+  if OnMouseMoveVirt<>nil then OnMouseMoveVirt(Shift, xp, yp, xv, yv, zv);
 end;
 procedure TCadProyecto.GuardarArchivo;
 begin
@@ -251,7 +270,8 @@ begin
   pag := TCadPagina.Create;
   pag.nombre:='Página'+IntToStr(paginas.Count+1);
   pag.padre := self;
-  pag.OnCambiaPerspec:=@pagCambiaPerspec;
+  pag.OnCambiaPerspec:=@pag_CambiaPerspec;
+  pag.OnMouseMoveVirt:=@pag_MouseMoveVirt;
   paginas.Add(pag);
   Modific:=true;   //es un cambio
   Result := pag;

@@ -6,7 +6,7 @@ unit ObjGraficos;
 {$mode objfpc}{$H+}
 interface
 uses
-  Graphics, fgl,
+  Graphics, LCLProc, fgl,
   MotGraf3d, DefObjGraf;
 
 type
@@ -181,6 +181,7 @@ const
   DSEL = 5;
 var
   a, b: Single;
+  dx, dy: Int16;
    //tolerancia en pixeles
 begin
   {No debería ser necesario actualizar las coordenadas de pantalla de P0 y P1, ya que
@@ -203,27 +204,32 @@ begin
   end else if P0.xp < P1.xp then begin  //P0 a la izquierda
      if xp<P0.xp-DSEL then exit(false);  //escapa de límite
      if xp>P1.xp+DSEL then exit(false);  //escapa de límite
-     //Define ecuación de la recta y=ax+b
-     a := (P1.yp - P0.yp)/(P1.xp - P0.xp);  //pendiente
-     b := P0.yp - a*P0.xp;
      //Simplifica la comparación, viendo solo una distancia vertical
-     Result := abs(a*xp + b - yp) < DSEL;
-//       if (abs(P0.xp-xp) < 10) and (abs(P0.yp-yp) < 10) then
-//        exit(True)
-//     else
-//        exit(false);
+//     a := (P1.yp - P0.yp)/(P1.xp - P0.xp);  //pendiente
+//     b := P0.yp - a*P0.xp;  //Define ecuación de la recta y=ax+b
+//     Result := abs(a*xp + b - yp) < DSEL;
+     //Forma alternativa, sin divisiones
+     dx := P1.xp - P0.xp;   //siempre positivo
+     dy := P1.yp - P0.yp;   //positivo o negativo
+     if abs(dy)<dx then begin
+       Result := abs( (xp - P0.xp)*dy - (yp-P0.yp)*dx ) < DSEL * dx;
+     end else begin //abs(dy), es mayor a dx
+       Result := abs( (xp - P0.xp)*dy - (yp-P0.yp)*dx ) < DSEL * abs(dy);
+     end;
   end else begin                        //P1 a la izquierda
      if xp<P1.xp-DSEL then exit(false);  //escapa de límite
      if xp>P0.xp+DSEL then exit(false);  //escapa de límite
      //Define ecuación de la recta y=ax+b
-     a := (P0.yp - P1.yp)/(P0.xp - P1.xp);  //pendiente
-     b := P1.yp - a*P1.xp;
-     //Simplifica la comparación, viendo solo una distancia vertical
-     Result := abs(a*xp + b - yp) < DSEL;
-//     if (abs(P0.xp-xp) < 10) and (abs(P0.yp-yp) < 10) then
-//         exit(True)
-//     else
-//         exit(false);
+//     a := (P0.yp - P1.yp)/(P0.xp - P1.xp);  //pendiente
+//     b := P1.yp - a*P1.xp;
+//     Result := abs(a*xp + b - yp) < DSEL;
+      dx := P0.xp - P1.xp;   //siempre positivo
+      dy := P0.yp - P1.yp;   //positivo o negativo
+      if abs(dy)<dx then begin
+        Result := abs( (xp - P1.xp)*dy - (yp-P1.yp)*dx ) < DSEL * dx;
+      end else begin //abs(dy), es mayor a dx
+        Result := abs( (xp - P1.xp)*dy - (yp-P1.yp)*dx ) < DSEL * abs(dy);
+      end;
   end;
 end;
 
