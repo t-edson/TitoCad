@@ -1,3 +1,10 @@
+Titocad 0.2.4
+=============
+Se reescriben las rutinas del visor TVisGraf3D, creando procedimientos por cada estado
+del Visor.
+Se crea el evento para manejar cambiso de estado en el visor TVisGraf3D. 
+
+
 Titocad 0.2.3
 =============
 Se mejora la selección de rectas.
