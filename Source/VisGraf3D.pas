@@ -35,9 +35,8 @@ unit VisGraf3D;
 {$mode objfpc}{$H+}
 INTERFACE
 uses
-  Classes, Controls, ExtCtrls, Graphics,
+  Classes, Controls, ExtCtrls, Graphics, LCLProc, fgl,
   MotGraf3D, DefObjGraf;
-
 const
   CUR_DEFEC = crDefault;          //cursor por defecto
 
@@ -47,30 +46,64 @@ const
   FACTOR_AMPLIA_ZOOM = 1.15;  //Factor de ampliación del zoom
   DESPLAZ_MENOR = 10;
 type
-  EstadosPuntero = (
-      EP_NORMAL,      //No se está realizando ninguna operación
-      EP_SELECMULT,   //Esta en modo de selección múltiple
-      EP_MOV_OBJS,    //Indica que se esta moviendo una o mas objetos
-      EP_DESP_PANT,   //desplazamiento de pantalla
-      EP_DESP_ANG,    //Indica desplazamiento de ángulos de vista
-      EP_DIMEN_OBJ,   //Indica que se está dimensionando un objeto
-      EP_RAT_ZOOM);   //Indica que se está en un proceso de Zoom
+  //Tipo de evento
+  TVisMouseEventTyp = (
+    vmeMouseDown,
+    vmeMouseMove,
+    vmeMouseUp
+  );
+  TVisMouseProc = procedure(mouseEvent: TVisMouseEventTyp; Button: TMouseButton;
+                                        Shift: TShiftState; xp, yp: Integer) of object;
 
+  //Estados del puntero
+  TVisStateTyp = (
+       EP_NORMAL      //No se está realizando ninguna operación
+      ,EP_SELECMULT   //Esta en modo de selección múltiple
+      ,EP_MOV_OBJS    //Indica que se esta moviendo una o mas objetos
+      ,EP_DESP_PANT   //desplazamiento de pantalla
+      ,EP_DESP_ANG    //Indica desplazamiento de ángulos de vista
+      ,EP_DIMEN_OBJ   //Indica que se está dimensionando un objeto
+      ,EP_RAT_ZOOM
+      //Estados adciionales para los comandos
+      ,EP_COMM_LINE
+      );   //Indica que se está en un proceso de Zoom
+
+  TVisMouseState = class
+    state: TVisStateTyp;
+    proc : TVisMouseProc;
+  end;
+  TVisMouseEvent_list = specialize TFPGObjectList<TVisMouseState>;
 
   TOnClickDer = procedure(x,y:integer) of object;
+  TEvChangeState = procedure(VisState: TVisStateTyp) of object;
 
   { TVisGraf3D }
-
   TVisGraf3D = class
   private
+    FEstPuntero: TVisStateTyp;
+    procedure proc_DESP_ANG(mouseEvent: TVisMouseEventTyp; Button: TMouseButton;
+      Shift: TShiftState; xp, yp: Integer);
+    procedure proc_DESP_PANT(mouseEvent: TVisMouseEventTyp; Button: TMouseButton;
+      Shift: TShiftState; xp, yp: Integer);
+    procedure proc_DIMEN_OBJ(mouseEvent: TVisMouseEventTyp; Button: TMouseButton;
+      Shift: TShiftState; xp, yp: Integer);
+    procedure proc_MOV_OBJS(mouseEvent: TVisMouseEventTyp; Button: TMouseButton;
+      Shift: TShiftState; xp, yp: Integer);
+    procedure proc_NORMAL(mouseEvent: TVisMouseEventTyp; Button: TMouseButton;
+      Shift: TShiftState; xp, yp: Integer);
     procedure PB_Resize(Sender: TObject);
+    procedure proc_RAT_ZOOM(mouseEvent: TVisMouseEventTyp; Button: TMouseButton;
+      Shift: TShiftState; xp, yp: Integer);
+    procedure proc_SELECMULT(mouseEvent: TVisMouseEventTyp; Button: TMouseButton;
+      Shift: TShiftState; xp, yp: Integer);
+    procedure SetEstPuntero(AValue: TVisStateTyp);
     procedure v2dChangeView;
   protected
     PB           : TPaintBox;    //Control de Salida
     CapturoEvento: TObjGraf;  //referencia a objeto que capturo el movimiento
     ultMarcado   : TObjGraf;  //nombre del objeto marcado
     ParaMover    : Boolean;         //bandera de control para el inicio del movimiento
-    EstPuntero  : EstadosPuntero;  //Estado del puntero
+    property EstPuntero   : TVisStateTyp read FEstPuntero write SetEstPuntero;  //Estado del puntero
     procedure MouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState;
                         xp, yp: Integer); virtual;
     procedure MouseUp(Sender: TObject; Button: TMouseButton;Shift: TShiftState; xp, yp: Integer);
@@ -88,7 +121,11 @@ type
     OnObjectsMoved: procedure of object;
     OnChangeView: procedure of object;
     OnModif     : procedure of object;   //Este visor indica los cambios con este evento
+    OnChangeState: TEvChangeState;    //Cambia el estado del Visor
   public
+    xvPtr       : Single;   //coordenadas cirtuales del puntero
+    yvPtr       : Single;   //coordenadas cirtuales del puntero
+    zvPtr       : Single;   //coordenadas cirtuales del puntero
     objetos     : TlistObjGraf; //referencia a la lisat de objetos
     seleccion   : TlistObjGraf;
     v2d         : TMotGraf;    //salida gráfica
@@ -146,7 +183,12 @@ type
     procedure ObjGraf_Unselec(obj: TObjGraf);    //Respuesta a Evento
     procedure ObjGraf_SetPointer(Punt: integer);  //Respuesta a Evento
   public //Inicialización
+    MouseProcList: TVisMouseEvent_list;
     procedure RestaurarEstado;
+    procedure RegisterMouseState(MouseState: TVisStateTyp; MouseProc: TVisMouseProc);
+    procedure CallMouseProc(MouseState: TVisStateTyp;
+      EventType: TVisMouseEventTyp; Button: TMouseButton; Shift: TShiftState;
+  xp, yp: Integer);
     constructor Create(PB0: TPaintBox; objectList: TlistObjGraf);
     destructor Destroy; override;
   end;
@@ -169,34 +211,33 @@ begin
     y_pulso := yp;
     InicMover;   //por si acaso, para iniciar movimiento
     if Shift >= [ssCtrl, ssShift]  Then begin   //Contiene Shift+Ctrl
-        //Inicia estado de ZOOM. Puede convertirse en EP_DESP_PANT
-        //si luego se genera el evento Move()
-        EstPuntero := EP_RAT_ZOOM;
-        Exit;  //Ya no se necesita procesar
+       //Inicia estado de ZOOM. Puede convertirse en EP_DESP_PANT
+       //si luego se genera el evento Move()
+       EstPuntero := EP_RAT_ZOOM;
+       Exit;  //Ya no se necesita procesar
     end;
     ogs := SeleccionaAlguno(xp, yp);  //verifica si selecciona a un objeto
-    if Button = mbRight then
-      begin  //pulso derecho-------------------
-        if ogs = nil Then begin  //Ninguno seleccionado
-            DeseleccionarTodos;
-            Refrescar;
-            EstPuntero := EP_SELECMULT;  //inicia seleccion multiple
-            InicRecSeleccion(x_pulso, y_pulso);
-        end else begin //Selecciona a uno, pueden haber otros seleccionados
+    if Button = mbRight then begin  //pulso derecho-------------------
+      if ogs = nil Then begin  //Ninguno seleccionado
+          DeseleccionarTodos;
+          Refrescar;
+          EstPuntero := EP_SELECMULT;  //inicia seleccion multiple
+          InicRecSeleccion(x_pulso, y_pulso);
+      end else begin //Selecciona a uno, pueden haber otros seleccionados
 //msgbox('Lo selecciona');
-            if ogs.Selected Then  begin  //Se marcó sobre un seleccionado
+          if ogs.Selected Then  begin  //Se marcó sobre un seleccionado
 //                if Shift = [] Then DeseleccionarTodos;
-                ogs.MouseDown(Sender, Button, Shift, xp, yp);  //Pasa el evento
-                exit;
-            end;
-            //Se selecciona a uno que no tenía selección
-            if Shift = [ssRight] Then  //Sin Control ni Shift
-              DeseleccionarTodos;
-            ogs.MouseDown(Sender, Button, Shift, xp, yp);  //Pasa el evento
-            Refrescar;
-             //ParaMover = True       ;  //listo para mover
-        end;
-      end
+              ogs.MouseDown(Sender, Button, Shift, xp, yp);  //Pasa el evento
+              exit;
+          end;
+          //Se selecciona a uno que no tenía selección
+          if Shift = [ssRight] Then  //Sin Control ni Shift
+            DeseleccionarTodos;
+          ogs.MouseDown(Sender, Button, Shift, xp, yp);  //Pasa el evento
+          Refrescar;
+           //ParaMover = True       ;  //listo para mover
+      end;
+    end
     else If Button = mbLeft Then begin   //pulso izquierdo-----------------
         If ogs = NIL Then  begin  //No selecciona a ninguno
             DeseleccionarTodos;
@@ -223,93 +264,22 @@ begin
 End;
 procedure  TVisGraf3D.MouseUp(Sender: TObject; Button: TMouseButton;
   Shift: TShiftState; xp, yp: Integer);
-var o: TObjGraf;
 begin
-    //Verifica si la selección es NULA
-    If (EstPuntero = EP_SELECMULT) And RecSeleccionNulo Then EstPuntero := EP_NORMAL;
-    //Procesa de acuerdo al estado
-    Case EstPuntero of
-    EP_RAT_ZOOM:    //------ Zoom con el Ratón ------
-      begin
-        If Button = mbLeft Then AmpliarClick(1.2, xp, yp) ;  //<Shift> + <Ctrl> + click izquierdo
-        If Button = mbRight Then ReducirClick(1.2, xp, yp) ;  //<Shift> + <Ctrl> + click derecho
-//      EstPuntero = EP_NORMAL   //Legalmente debería ponerse a normal. Pero si se
-                                 //hace, es posible que un click consecutivo muy
-                                 //rápido, no dispare el evento MouseDown (dispara
-                                 //el DblClick en su lugar), y se desactivaría el
-                                 //modo ZOOM lo que es molesto.
-      end;
-    EP_DESP_PANT, EP_DESP_ANG:     //Desplazamiento de Pantalla o ángulo
-        EstPuntero := EP_NORMAL;
-    EP_MOV_OBJS:     //------ Moviendo Objetos ------
-      begin
-//Debug.Print "Esatado EP_MOV_OBJS"
-        For o In seleccion do  //Pasa el evento a la selección
-            o.MouseUp(Sender, Button, Shift, xp, yp, EstPuntero = EP_MOV_OBJS);
-        EstPuntero := EP_NORMAL;  //fin de movimiento
-        Refrescar;
-        //Genera eventos. Los objetos movidos se pueden determinar a partir de la selección.
-        if OnObjectsMoved<>nil then OnObjectsMoved;
-      end;
-    EP_SELECMULT :  //------ En selección múltiple, Botón izquierdo o derecho
-      begin
-        if objetos.Count > 100 Then begin  //Necesita actualizar porque la selección múltiple es diferente
-          for o in objetos do
-            if enRecSeleccion(o.XCent, o.YCent) And Not o.Selected Then o.Selec;
-        end;
-        EstPuntero := EP_NORMAL;
-      end;
-    EP_NORMAL:  //------ En modo normal
-      begin
-        o := SeleccionaAlguno(xp, yp);  //verifica si selecciona a un objeto
-        If Button = mbRight Then //----- solto derecho -------------------
-          begin
-(*            If o = NIL Then  //Ninguno seleccionado
-                RaiseEvent ClickDerDiag    //Genera evento
-            Else    ;  //Hay uno que lo selecciona, o más???
-                If Not o.Seleccionado Then Call o.SoltoRaton(Button, Shift, xr, yr)    ;  //Pasa el evento
-                RaiseEvent ClickDerSel     //Genera evento
-            End If*)
-          end
-        else If Button = mbLeft Then begin //----- solto izquierdo -----------
-            If o = NIL Then    //No selecciona a ninguno
-//                DeseleccionarTodos
-            else begin         //Selecciona a alguno
-                If Shift = [] Then DeseleccionarTodos;
-                o.Selec;   //selecciona
-                o.MouseUp(Sender, Button, Shift, xp, yp, false);
-                Refrescar;
-                //Verifica si el objeto está pidiendo que lo eliminen
-//Este código se comentó porque no se le encontró ninguna utilidad
-//                if o.Erased then begin
-//                  EliminarObjGrafico(o);
-//                  Refrescar;
-//                end;
-            End;
-            CapturoEvento := NIL;      //inicia bandera de captura de evento
-            ParaMover := False;        //por si aca
-        end;
-      end;
-    EP_DIMEN_OBJ:  //Se soltó mientras se estaba dimensionado un objeto
-      begin
-        //pasa evento a objeto que se estaba dimensionando
-        CapturoEvento.MouseUp(Sender, Button, Shift, xp, yp, false);
-        //termina estado
-        EstPuntero := EP_NORMAL;
-        CapturoEvento := NIL;      //inicia bandera de captura de evento
-        ParaMover := False;        //por si aca
-      end;
-    end;
-    if Button = mbRight then
-      if OnClickDer<> nil then OnClickDer(xp,yp);  //evento
-    if OnMouseUp<>nil then OnMouseUp(Sender, Button, Shift, xp, yp);
-End;
+   //Verifica si la selección es NULA
+   If (EstPuntero = EP_SELECMULT) And RecSeleccionNulo Then EstPuntero := EP_NORMAL;
+   CallMouseProc(EstPuntero, vmeMouseUp, Button, Shift, xp, yp); //Procesa de acuerdo al estado
+   if Button = mbRight then
+     if OnClickDer<> nil then OnClickDer(xp,yp);  //evento
+   if OnMouseUp<>nil then OnMouseUp(Sender, Button, Shift, xp, yp);
+end;
 procedure TVisGraf3D.MouseMove(Sender: TObject; Shift: TShiftState;
   X,  Y: Integer);
 var
   s: TObjGraf;
   dx, dy: Single;
 begin
+  zvPtr := 0;   //fijamos el plano de trabajo en z=0
+  v2d.XYvirt(X,Y,zvPtr, xvPtr, yvPtr);
   if OnMouseMove<>nil then OnMouseMove(Sender, Shift, X, Y);
   If (Shift = [ssMiddle]) or (Shift = [ssCtrl, ssShift, ssRight]) Then begin //<Shift>+<Ctrl> + <Botón derecho>
     //Desplaza la panatalla
@@ -371,12 +341,50 @@ end;
 procedure TVisGraf3D.Paint(Sender: TObject);
 var
   o:TObjGraf;
-  x, y: Single;
+  x, y, xCuad1, xCuad2, yCuad1, yCuad2: Single;
+  nCuad, ix, distCub, paso: Integer;
 begin
-//    PB.canvas.Brush.Color := clWhite; //rgb(255,255,255);
-//    PB.canvas.FillRect(PB.ClientRect); //fondo
     v2d.Clear;
     If EstPuntero = EP_SELECMULT Then DibujRecSeleccion;
+    if VerCuadric then begin
+      //Muestra cuadrícula
+      v2d.SetPen(TColor($404040),1);
+      if v2d.Zoom > 7 then begin
+        distCub := 100;  //distancia cubierta (valor virtual)
+        paso := 10;      //ancho del paso (valor virtual)
+      end else if v2d.Zoom > 3 then begin
+        distCub := 200;  //distancia cubierta (valor virtual)
+        paso := 20;      //ancho del paso (valor virtual)
+      end else if v2d.Zoom > 1 then begin
+        distCub := 600;  //distancia cubierta (valor virtual)
+        paso := 50;      //ancho del paso (valor virtual)
+      end else begin
+        distCub := 1200;  //distancia cubierta (valor virtual)
+        paso := 100;      //ancho del paso (valor virtual)
+      end;
+      nCuad := distCub div paso;
+
+//      xCuad1 := 0;
+//      xCuad2 := 1000;
+      xCuad1 := int((v2d.x_cam - distCub/2)/paso)*paso;
+      xCuad2 := xCuad1 + distCub;
+
+//      yCuad1 := 0;
+//      yCuad2 := 1000;
+      yCuad1 := int((v2d.y_cam - distCub/2)/paso)*paso;
+      yCuad2 := yCuad1 + distCub;
+
+      x := xCuad1;
+      for ix := 0 to nCuad do begin
+        v2d.Line(x,yCuad1,0, x, yCuad2, 0);
+        x := x + paso;
+      end;
+      y := yCuad1;
+      for ix := 0 to nCuad do begin
+        v2d.Line(xCuad1, y, 0, xCuad2, y, 0);
+        y := y + paso;
+      end;
+    end;
     //Dibuja objetos
     for o In objetos do begin
       o.Dibujar;
@@ -397,6 +405,14 @@ begin
       v2d.Line(x-30,y,0,  x+30,y,0);
       v2d.Line(x, y-30,0, x, y+30,0);
     end;
+    //Dibuja puntero del mouse  (No es apropiado porque necesita refescar siempre.)
+//    v2d.SetPen(clWhite, 1);
+//    v2d.Line(xvPtr-30, yvPtr, zvPtr,
+//             xvPtr+30, yvPtr, zvPtr);
+//    v2d.Line(xvPtr, yvPtr-30, zvPtr,
+//             xvPtr, yvPtr+30, zvPtr);
+//    v2d.Line(xvPtr, yvPtr, zvPtr-30,
+//             xvPtr, yvPtr, zvPtr+30);
 end;
 procedure TVisGraf3D.Refrescar();  //   Optional s: TObjGraf = Nothing
 begin
@@ -414,6 +430,10 @@ begin
   if Shift = [ssShift] then begin
     if WheelDelta>0 then d := incWheel else d := -incWheel;
     v2d.Fi := v2d.Fi + d;
+  end;
+  if Shift = [] then begin
+    if WheelDelta>0 then v2d.Zoom:=v2d.Zoom*1.2
+    else v2d.Zoom:=v2d.Zoom/1.2;
   end;
   Refrescar;
 end;
@@ -434,7 +454,6 @@ begin
     x_cam_a := v2d.x_cam;
     y_cam_a := v2d.y_cam;
 end;
-
 function TVisGraf3D.SeleccionaAlguno(xp, yp: Integer): TObjGraf;
 //Rutina principal para determinar la selección de objetos. Si (xp,yp)
 //selecciona a algún objeto, devuelve la referencia, sino devuelve "NIL"
@@ -874,6 +893,152 @@ begin
   ultMarcado := NIL;
   PB.Cursor := CUR_DEFEC;        //define cursor
 end;
+
+procedure TVisGraf3D.proc_NORMAL(mouseEvent: TVisMouseEventTyp; Button: TMouseButton;
+  Shift: TShiftState; xp, yp: Integer);
+var
+  o: TObjGraf;
+begin
+  if mouseEvent = vmeMouseDown then begin
+  end else if mouseEvent = vmeMouseMove then begin
+  end else if mouseEvent = vmeMouseUp then begin
+      o := SeleccionaAlguno(xp, yp);  //verifica si selecciona a un objeto
+      if Button = mbRight then begin //----- solto derecho -------------------
+(*            If o = NIL Then  //Ninguno seleccionado
+              RaiseEvent ClickDerDiag    //Genera evento
+          Else    ;  //Hay uno que lo selecciona, o más???
+              If Not o.Seleccionado Then Call o.SoltoRaton(Button, Shift, xr, yr)    ;  //Pasa el evento
+              RaiseEvent ClickDerSel     //Genera evento
+          End If*)
+      end else If Button = mbLeft Then begin //----- solto izquierdo -----------
+          If o = NIL Then    //No selecciona a ninguno
+//                DeseleccionarTodos
+          else begin         //Selecciona a alguno
+              If Shift = [] Then DeseleccionarTodos;
+              o.Selec;   //selecciona
+              o.MouseUp(self, Button, Shift, xp, yp, false);
+              Refrescar;
+              //Verifica si el objeto está pidiendo que lo eliminen
+//Este código se comentó porque no se le encontró ninguna utilidad
+//                if o.Erased then begin
+//                  EliminarObjGrafico(o);
+//                  Refrescar;
+//                end;
+          End;
+          CapturoEvento := NIL;      //inicia bandera de captura de evento
+          ParaMover := False;        //por si aca
+      end;
+  end;
+end;
+procedure TVisGraf3D.proc_SELECMULT(mouseEvent: TVisMouseEventTyp; Button: TMouseButton;
+  Shift: TShiftState; xp, yp: Integer);
+var
+  o: TObjGraf;
+begin
+  if mouseEvent = vmeMouseDown then begin
+  end else if mouseEvent = vmeMouseMove then begin
+  end else if mouseEvent = vmeMouseUp then begin
+    if objetos.Count > 100 Then begin  //Necesita actualizar porque la selección múltiple es diferente
+      for o in objetos do
+        if enRecSeleccion(o.XCent, o.YCent) And Not o.Selected Then o.Selec;
+    end;
+    EstPuntero := EP_NORMAL;
+  end;
+end;
+
+procedure TVisGraf3D.SetEstPuntero(AValue: TVisStateTyp);
+begin
+  if FEstPuntero=AValue then Exit;
+  if OnChangeState<>nil then OnChangeState(FEstPuntero);
+  FEstPuntero:=AValue;
+end;
+
+procedure TVisGraf3D.proc_MOV_OBJS(mouseEvent: TVisMouseEventTyp; Button: TMouseButton;
+  Shift: TShiftState; xp, yp: Integer);
+var
+  o: TObjGraf;
+begin
+  if mouseEvent = vmeMouseDown then begin
+  end else if mouseEvent = vmeMouseMove then begin
+  end else if mouseEvent = vmeMouseUp then begin
+//Debug.Print "Esatado EP_MOV_OBJS"
+    for o In seleccion do  //Pasa el evento a la selección
+        o.MouseUp(self, Button, Shift, xp, yp, EstPuntero = EP_MOV_OBJS);
+    EstPuntero := EP_NORMAL;  //fin de movimiento
+    Refrescar;
+    //Genera eventos. Los objetos movidos se pueden determinar a partir de la selección.
+    if OnObjectsMoved<>nil then OnObjectsMoved;
+  end;
+end;
+procedure TVisGraf3D.proc_DESP_PANT(mouseEvent: TVisMouseEventTyp; Button: TMouseButton;
+  Shift: TShiftState; xp, yp: Integer);
+begin
+  if mouseEvent = vmeMouseDown then begin
+  end else if mouseEvent = vmeMouseMove then begin
+  end else if mouseEvent = vmeMouseUp then begin
+    EstPuntero := EP_NORMAL;
+  end;
+end;
+procedure TVisGraf3D.proc_DESP_ANG(mouseEvent: TVisMouseEventTyp; Button: TMouseButton;
+  Shift: TShiftState; xp, yp: Integer);
+begin
+  if mouseEvent = vmeMouseDown then begin
+  end else if mouseEvent = vmeMouseMove then begin
+  end else if mouseEvent = vmeMouseUp then begin
+    EstPuntero := EP_NORMAL;
+  end;
+end;
+procedure TVisGraf3D.proc_DIMEN_OBJ(mouseEvent: TVisMouseEventTyp; Button: TMouseButton;
+  Shift: TShiftState; xp, yp: Integer);
+begin
+  if mouseEvent = vmeMouseDown then begin
+  end else if mouseEvent = vmeMouseMove then begin
+  end else if mouseEvent = vmeMouseUp then begin
+    //pasa evento a objeto que se estaba dimensionando
+    CapturoEvento.MouseUp(self, Button, Shift, xp, yp, false);
+    //termina estado
+    EstPuntero := EP_NORMAL;
+    CapturoEvento := NIL;      //inicia bandera de captura de evento
+    ParaMover := False;        //por si aca
+  end;
+end;
+procedure TVisGraf3D.proc_RAT_ZOOM(mouseEvent: TVisMouseEventTyp; Button: TMouseButton;
+  Shift: TShiftState; xp, yp: Integer);
+begin
+  if mouseEvent = vmeMouseDown then begin
+  end else if mouseEvent = vmeMouseMove then begin
+  end else if mouseEvent = vmeMouseUp then begin
+    If Button = mbLeft Then AmpliarClick(1.2, xp, yp) ;  //<Shift> + <Ctrl> + click izquierdo
+    If Button = mbRight Then ReducirClick(1.2, xp, yp) ;  //<Shift> + <Ctrl> + click derecho
+//      EstPuntero = EP_NORMAL   //Legalmente debería ponerse a normal. Pero si se
+                             //hace, es posible que un click consecutivo muy
+                             //rápido, no dispare el evento MouseDown (dispara
+                             //el DblClick en su lugar), y se desactivaría el
+                             //modo ZOOM lo que es molesto.
+  end;
+end;
+procedure TVisGraf3D.RegisterMouseState(MouseState: TVisStateTyp;
+  MouseProc: TVisMouseProc);
+{Registra un nuevo estado del Ratón}
+var
+  mpr: TVisMouseState;
+begin
+  mpr := TVisMouseState.Create;
+  mpr.state:=MouseState;
+  mpr.proc:=MouseProc;
+  MouseProcList.Add(mpr);
+end;
+procedure TVisGraf3D.CallMouseProc(MouseState: TVisStateTyp;
+                  EventType: TVisMouseEventTyp;
+                  Button: TMouseButton; Shift: TShiftState; xp, yp: Integer);
+{Llama al evento apropiado para el estado indicado}
+var
+  mpr: TVisMouseState;
+begin
+  for mpr in MouseProcList do begin
+    if mpr.state = MouseState then mpr.proc(EventType,Button, Shift, xp, yp);
+  end;
+end;
 constructor TVisGraf3D.Create(PB0: TPaintBox; objectList: TlistObjGraf);
 {Metodo de inicialización de la clase Visor. Debe indicarse el PaintBox de
 salida donde se controlarán los objetos gráficos.
@@ -899,9 +1064,19 @@ begin
                                              administración la hará "objetos".}
   RestaurarEstado;
   incWheel  := 0.1;
+  //Crea lista de eventos
+   MouseProcList:= TVisMouseEvent_list.Create(true);
+   RegisterMouseState(EP_NORMAL   , @proc_NORMAL);
+   RegisterMouseState(EP_SELECMULT, @proc_SELECMULT);
+   RegisterMouseState(EP_MOV_OBJS , @proc_MOV_OBJS);
+   RegisterMouseState(EP_DESP_PANT, @proc_DESP_PANT);
+   RegisterMouseState(EP_DESP_ANG , @proc_DESP_ANG);
+   RegisterMouseState(EP_DIMEN_OBJ, @proc_DIMEN_OBJ);
+   RegisterMouseState(EP_RAT_ZOOM , @proc_RAT_ZOOM);
 end;
 destructor TVisGraf3D.Destroy;
 begin
+  MouseProcList.Destroy;
   seleccion.Free;
 //  objetos.Free;  //limpia lista y libera objetos apuntados
   v2d.Free;      //Libera

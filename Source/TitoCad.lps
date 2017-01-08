@@ -4,12 +4,12 @@
     <PathDelim Value="\"/>
     <Version Value="9"/>
     <BuildModes Active="Debug"/>
-    <Units Count="42">
+    <Units Count="43">
       <Unit0>
         <Filename Value="TitoCad.lpr"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
-        <CursorPos Y="14"/>
+        <CursorPos X="31" Y="11"/>
         <UsageCount Value="205"/>
       </Unit0>
       <Unit1>
@@ -18,15 +18,12 @@
         <ComponentName Value="frmPrincipal"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
-        <TopLine Value="424"/>
-        <CursorPos X="26" Y="485"/>
-        <FoldState Value=" T4304 T8G2{F011 T3kB0]J5 pkFj22D7 pj0kH0I912 TMmF4A6 THlQ2D T0lRH543]PLlg[+56m1]811="/>
+        <IsVisibleTab Value="True"/>
+        <TopLine Value="338"/>
+        <CursorPos X="18" Y="355"/>
+        <FoldState Value=" T8G2{F011 T3kE03225 TMmI4A6 THlT2D T0lUH5713 TLm2012 T6m4014_"/>
         <UsageCount Value="205"/>
-        <Bookmarks Count="1">
-          <Item0 Y="141" ID="1"/>
-        </Bookmarks>
         <Loaded Value="True"/>
-        <LoadedDesigner Value="True"/>
       </Unit1>
       <Unit2>
         <Filename Value="EvalExpres.pas"/>
@@ -89,7 +86,7 @@
         <EditorIndex Value="-1"/>
         <TopLine Value="72"/>
         <CursorPos X="45" Y="100"/>
-        <UsageCount Value="155"/>
+        <UsageCount Value="184"/>
       </Unit7>
       <Unit8>
         <Filename Value="ConfigFrames\FrameCfgVista.pas"/>
@@ -99,15 +96,15 @@
         <ResourceBaseClass Value="Frame"/>
         <EditorIndex Value="-1"/>
         <CursorPos X="3" Y="15"/>
-        <UsageCount Value="154"/>
+        <UsageCount Value="183"/>
       </Unit8>
       <Unit9>
         <Filename Value="CadDefinitions.pas"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="1"/>
-        <TopLine Value="29"/>
-        <CursorPos Y="54"/>
-        <UsageCount Value="151"/>
+        <TopLine Value="167"/>
+        <CursorPos X="52" Y="185"/>
+        <UsageCount Value="180"/>
         <Loaded Value="True"/>
       </Unit9>
       <Unit10>
@@ -119,7 +116,7 @@
         <EditorIndex Value="-1"/>
         <TopLine Value="48"/>
         <CursorPos X="10" Y="65"/>
-        <UsageCount Value="151"/>
+        <UsageCount Value="180"/>
       </Unit10>
       <Unit11>
         <Filename Value="Globales.pas"/>
@@ -127,7 +124,7 @@
         <EditorIndex Value="-1"/>
         <CursorPos X="24" Y="8"/>
         <FoldState Value=" TLI01 TMS611t"/>
-        <UsageCount Value="150"/>
+        <UsageCount Value="179"/>
       </Unit11>
       <Unit12>
         <Filename Value="FrameExplorProyectos.pas"/>
@@ -139,38 +136,33 @@
         <TopLine Value="199"/>
         <CursorPos Y="226"/>
         <FoldState Value=" TL0061 T8iA23 TMlg2104]H3iQ06A211]M0iTQ2352 T6j901N"/>
-        <UsageCount Value="96"/>
+        <UsageCount Value="125"/>
       </Unit12>
       <Unit13>
         <Filename Value="ObjGraficos.pas"/>
         <IsPartOfProject Value="True"/>
-        <IsVisibleTab Value="True"/>
         <EditorIndex Value="4"/>
-        <TopLine Value="180"/>
-        <CursorPos X="21" Y="222"/>
-        <FoldState Value=" TL0024 T4702 TMib0111]3 T7NC5 T8Q01013 T3je0]G6id]H[W40k7W121]KHkC2JH"/>
-        <UsageCount Value="130"/>
-        <Bookmarks Count="1">
-          <Item0 X="50" Y="121" ID="2"/>
-        </Bookmarks>
+        <CursorPos X="59" Y="22"/>
+        <FoldState Value=" T4702 TMib0111]3 T7NC5 T8Q01013 T3je0]G6id]H[W40k7W121]KHkC2J("/>
+        <UsageCount Value="159"/>
         <Loaded Value="True"/>
       </Unit13>
       <Unit14>
         <Filename Value="DefObjGraf.pas"/>
         <IsPartOfProject Value="True"/>
-        <IsVisibleTab Value="True"/>
-        <WindowIndex Value="1"/>
-        <TopLine Value="497"/>
-        <CursorPos Y="590"/>
-        <FoldState Value=" TL00P022 T4T01 TMpK010214241519]I7jaE9 T8jg[c43lU06216 piYjX07512]e73]R0oBQ5034]TT6qG02]zHtf2C'"/>
+        <EditorIndex Value="5"/>
+        <TopLine Value="573"/>
+        <CursorPos X="23" Y="589"/>
+        <FoldState Value=" T7dFK011 T8e23133 TMp]H0214241519]R3lU068 pj4jM088152452 T0oBQ5527 T6qG]n8"/>
         <ExtraEditorCount Value="1"/>
         <ExtraEditor1>
-          <EditorIndex Value="5"/>
-          <TopLine Value="439"/>
-          <CursorPos Y="513"/>
-          <FoldState Value=" TL00P023 T4T01 TMpK010214241519]I7dF]J]98e2313]g3lU068 pj4jM088152452 T0oBQ5527 T6qG].t"/>
+          <EditorIndex Value="-1"/>
+          <WindowIndex Value="-1"/>
+          <TopLine Value="496"/>
+          <CursorPos Y="590"/>
+          <FoldState Value=" TL00P022 T4T01 T7jaE9 T8jg[K43lU06216 T0oBQ5034[C46qG02]iHtf2CL"/>
         </ExtraEditor1>
-        <UsageCount Value="123"/>
+        <UsageCount Value="152"/>
         <Loaded Value="True"/>
       </Unit14>
       <Unit15>
@@ -181,7 +173,7 @@
         <EditorIndex Value="-1"/>
         <TopLine Value="27"/>
         <CursorPos X="16" Y="49"/>
-        <UsageCount Value="67"/>
+        <UsageCount Value="96"/>
       </Unit15>
       <Unit16>
         <Filename Value="MotGraf3d.pas"/>
@@ -189,7 +181,7 @@
         <TopLine Value="445"/>
         <CursorPos X="39" Y="453"/>
         <FoldState Value=" T4401 TC7B4 TMk6031111]33135117171214]YLM4]Y8ic2601]G3k1048 piZjD0C5222812 T6kD018 T0kgH23q"/>
-        <UsageCount Value="122"/>
+        <UsageCount Value="120"/>
       </Unit16>
       <Unit17>
         <Filename Value="FormGraf3D.pas"/>
@@ -199,35 +191,35 @@
         <EditorIndex Value="-1"/>
         <CursorPos X="25" Y="34"/>
         <FoldState Value=" T0i5R37 T3jT06 T6iT01i"/>
-        <UsageCount Value="115"/>
+        <UsageCount Value="113"/>
       </Unit17>
       <Unit18>
         <Filename Value="MotGraf2d.pas"/>
         <EditorIndex Value="-1"/>
         <CursorPos Y="150"/>
-        <UsageCount Value="34"/>
+        <UsageCount Value="32"/>
       </Unit18>
       <Unit19>
         <Filename Value="uResaltTerm.pas"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="114"/>
         <CursorPos X="33" Y="122"/>
-        <UsageCount Value="21"/>
+        <UsageCount Value="19"/>
       </Unit19>
       <Unit20>
         <Filename Value="upreproces.pas"/>
         <UnitName Value="uPreProces"/>
         <TopLine Value="77"/>
         <CursorPos Y="99"/>
-        <UsageCount Value="28"/>
+        <UsageCount Value="26"/>
       </Unit20>
       <Unit21>
         <Filename Value="C:\lazarus\lcl\graphics.pp"/>
         <UnitName Value="Graphics"/>
         <EditorIndex Value="-1"/>
-        <TopLine Value="249"/>
-        <CursorPos Y="263"/>
-        <UsageCount Value="7"/>
+        <TopLine Value="259"/>
+        <CursorPos X="30" Y="272"/>
+        <UsageCount Value="9"/>
       </Unit21>
       <Unit22>
         <Filename Value="..\..\_Librerias\MiConfig 0.3b\MiConfigXML.pas"/>
@@ -235,7 +227,7 @@
         <TopLine Value="210"/>
         <CursorPos X="3" Y="239"/>
         <FoldState Value=" T3iR0( T6kN021 T0kRZ4[A5LkK02 TDkW28z"/>
-        <UsageCount Value="5"/>
+        <UsageCount Value="3"/>
       </Unit22>
       <Unit23>
         <Filename Value="..\..\_Librerias\ConfigFrame 0.8b\ConfigFrame.pas"/>
@@ -246,7 +238,7 @@
         <WindowIndex Value="1"/>
         <TopLine Value="182"/>
         <CursorPos X="6" Y="204"/>
-        <UsageCount Value="3"/>
+        <UsageCount Value="1"/>
       </Unit23>
       <Unit24>
         <Filename Value="..\..\_Librerias\MiConfig 0.3b\MiConfigBasic.pas"/>
@@ -254,7 +246,7 @@
         <TopLine Value="139"/>
         <CursorPos X="52" Y="142"/>
         <FoldState Value=" T3rY0q1 TM Hwg01U"/>
-        <UsageCount Value="5"/>
+        <UsageCount Value="3"/>
       </Unit24>
       <Unit25>
         <Filename Value="C:\lazarus\lcl\comctrls.pp"/>
@@ -262,7 +254,7 @@
         <EditorIndex Value="-1"/>
         <TopLine Value="2801"/>
         <CursorPos X="3" Y="2820"/>
-        <UsageCount Value="3"/>
+        <UsageCount Value="1"/>
       </Unit25>
       <Unit26>
         <Filename Value="..\..\_Librerias\MiConfig 0.3b\MiConfigINI.pas"/>
@@ -270,14 +262,14 @@
         <TopLine Value="82"/>
         <CursorPos X="29" Y="189"/>
         <FoldState Value=" TL00H2 T4L01 T7QHD T8R23]J3i30842]A6iR013 T0iUZ6K2]fHj42* TDl3271="/>
-        <UsageCount Value="0"/>
+        <UsageCount Value="8"/>
       </Unit26>
       <Unit27>
         <Filename Value="C:\lazarus\lcl\include\treeview.inc"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="425"/>
         <CursorPos X="15" Y="444"/>
-        <UsageCount Value="0"/>
+        <UsageCount Value="8"/>
       </Unit27>
       <Unit28>
         <Filename Value="C:\lazarus\components\lazutils\lazloggerbase.pas"/>
@@ -285,7 +277,7 @@
         <EditorIndex Value="-1"/>
         <TopLine Value="731"/>
         <CursorPos Y="748"/>
-        <UsageCount Value="9"/>
+        <UsageCount Value="7"/>
       </Unit28>
       <Unit29>
         <Filename Value="frameVisorGraf.pas"/>
@@ -293,18 +285,20 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Frame"/>
         <EditorIndex Value="2"/>
-        <TopLine Value="134"/>
-        <CursorPos X="71" Y="162"/>
+        <TopLine Value="166"/>
+        <CursorPos X="52" Y="183"/>
+        <FoldState Value=" T3jA07E TLlc0v3"/>
         <UsageCount Value="100"/>
         <Loaded Value="True"/>
+        <LoadedDesigner Value="True"/>
       </Unit29>
       <Unit30>
         <Filename Value="C:\lazarus\lcl\forms.pp"/>
         <UnitName Value="Forms"/>
         <EditorIndex Value="-1"/>
-        <TopLine Value="266"/>
-        <CursorPos Y="290"/>
-        <UsageCount Value="3"/>
+        <TopLine Value="385"/>
+        <CursorPos X="24" Y="336"/>
+        <UsageCount Value="9"/>
       </Unit30>
       <Unit31>
         <Filename Value="ogMotGraf2d.pas"/>
@@ -313,20 +307,27 @@
         <TopLine Value="410"/>
         <CursorPos X="87" Y="643"/>
         <FoldState Value=" TL10N TMk20402171214172 TCYF41 T7i3B@ T8jQ0]E3jX0BA piajb0G11A TKkI0E1 pkDnD0c]9j4o90T T6mD016 T0vAN252"/>
-        <UsageCount Value="31"/>
+        <UsageCount Value="29"/>
       </Unit31>
       <Unit32>
         <Filename Value="VisGraf3D.pas"/>
         <EditorIndex Value="3"/>
-        <TopLine Value="301"/>
-        <CursorPos X="59" Y="317"/>
-        <FoldState Value=" T0oYaF0419"/>
+        <TopLine Value="42"/>
+        <CursorPos Y="67"/>
+        <FoldState Value=" TL00W3 p5.A021 T4a[75Mlf71041722333F26 p0t6014811111214]b7iRJ3]88ic2I5 piZjH28 T3lR03]b pkBm203]zj5jF0f[943kA0I9]jYjM098[95a08217]BakQ0Y1 T6lX01M T0lee5[P4dZX8C]8XjFNcJ]9ckPO6G[p5ID4]+2122[64[A6 TFv446]$K-O0Mm"/>
         <ExtraEditorCount Value="1"/>
         <ExtraEditor1>
-          <EditorIndex Value="-1"/>
-          <FoldState Value=" T8jI2c TMkg8104131319233F2 T4kP01 T3kS032 pkEkK0+01716 pj3oU0I9 piYjM09713 T6kY01H T0kfe57]RdaX8[84ZiRHBB[95gZ213A1H]DanUD4015 THmF4/ TKn805 p0te0M TFuS461?"/>
+          <IsVisibleTab Value="True"/>
+          <WindowIndex Value="1"/>
+          <TopLine Value="895"/>
+          <CursorPos X="19" Y="913"/>
+          <FoldState Value=" T0;2V6051P"/>
         </ExtraEditor1>
-        <UsageCount Value="84"/>
+        <UsageCount Value="98"/>
+        <Bookmarks Count="2">
+          <Item0 X="5" Y="59" ID="1"/>
+          <Item1 X="5" Y="83" ID="2"/>
+        </Bookmarks>
         <Loaded Value="True"/>
       </Unit32>
       <Unit33>
@@ -341,7 +342,7 @@
           <CursorPos Y="95"/>
           <FoldState Value=" TL0031 T470]6CAB4 T8V2D0111]HMjG0302511[G63jB04046 T6k401A T0lJH25A"/>
         </ExtraEditor1>
-        <UsageCount Value="26"/>
+        <UsageCount Value="24"/>
       </Unit33>
       <Unit34>
         <Filename Value="C:\lazarus\lcl\actnlist.pas"/>
@@ -349,14 +350,14 @@
         <EditorIndex Value="-1"/>
         <TopLine Value="207"/>
         <CursorPos X="3" Y="225"/>
-        <UsageCount Value="5"/>
+        <UsageCount Value="3"/>
       </Unit34>
       <Unit35>
         <Filename Value="C:\lazarus\fpc\3.0.0\source\rtl\objpas\classes\classesh.inc"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="1723"/>
         <CursorPos X="22" Y="1740"/>
-        <UsageCount Value="8"/>
+        <UsageCount Value="6"/>
       </Unit35>
       <Unit36>
         <Filename Value="C:\lazarus\fpc\3.0.0\source\rtl\objpas\types.pp"/>
@@ -364,38 +365,39 @@
         <EditorIndex Value="-1"/>
         <TopLine Value="47"/>
         <CursorPos X="24" Y="64"/>
-        <UsageCount Value="7"/>
+        <UsageCount Value="5"/>
       </Unit36>
       <Unit37>
         <Filename Value="..\..\_Librerias\MisUtils 0.5b\MisUtils.pas"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="24"/>
         <CursorPos X="61" Y="41"/>
-        <UsageCount Value="5"/>
+        <UsageCount Value="3"/>
       </Unit37>
       <Unit38>
         <Filename Value="C:\lazarus\fpc\3.0.0\source\rtl\inc\systemh.inc"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="380"/>
         <CursorPos X="3" Y="397"/>
-        <UsageCount Value="7"/>
+        <UsageCount Value="5"/>
       </Unit38>
       <Unit39>
         <Filename Value="C:\lazarus\fpc\3.0.0\source\rtl\win\wininc\struct.inc"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="200"/>
         <CursorPos X="6" Y="217"/>
-        <UsageCount Value="7"/>
+        <UsageCount Value="5"/>
       </Unit39>
       <Unit40>
         <Filename Value="..\..\_Librerias\MotGraf-0.2\MotGraf3d.pas"/>
-        <EditorIndex Value="1"/>
-        <WindowIndex Value="1"/>
-        <TopLine Value="357"/>
-        <CursorPos X="5" Y="368"/>
-        <FoldState Value=" TL0032 T4701 TMjI03025111]36]I8I2C[C4]B3jD04349 T6k601523 T0lSH2113~"/>
-        <UsageCount Value="20"/>
-        <Loaded Value="True"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="56"/>
+        <CursorPos X="6" Y="179"/>
+        <FoldState Value=" TL0032 T4701 TMjK03025111]3611]KCBE3 T8I2C11]93jF047]QC T6kA01A T0lWH258"/>
+        <UsageCount Value="28"/>
+        <Bookmarks Count="1">
+          <Item0 X="54" Y="51" ID="2"/>
+        </Bookmarks>
       </Unit40>
       <Unit41>
         <Filename Value="C:\lazarus\lcl\menus.pp"/>
@@ -403,129 +405,137 @@
         <EditorIndex Value="-1"/>
         <TopLine Value="28"/>
         <CursorPos X="11" Y="45"/>
-        <UsageCount Value="9"/>
+        <UsageCount Value="7"/>
       </Unit41>
+      <Unit42>
+        <Filename Value="C:\lazarus\lcl\controls.pp"/>
+        <UnitName Value="Controls"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="347"/>
+        <CursorPos X="56" Y="365"/>
+        <UsageCount Value="8"/>
+      </Unit42>
     </Units>
     <JumpHistory Count="30" HistoryIndex="29">
       <Position1>
-        <Filename Value="DefObjGraf.pas"/>
-        <Caret Line="639" TopLine="622"/>
+        <Filename Value="FormPrincipal.pas"/>
+        <Caret Line="421" Column="30" TopLine="383"/>
       </Position1>
       <Position2>
-        <Filename Value="ObjGraficos.pas"/>
-        <Caret Line="113" Column="8" TopLine="95"/>
+        <Filename Value="FormPrincipal.pas"/>
+        <Caret Line="418" Column="41" TopLine="383"/>
       </Position2>
       <Position3>
-        <Filename Value="DefObjGraf.pas"/>
-        <Caret Line="650" Column="5" TopLine="624"/>
+        <Filename Value="FormPrincipal.pas"/>
+        <Caret Line="421" Column="38" TopLine="383"/>
       </Position3>
       <Position4>
-        <Filename Value="DefObjGraf.pas"/>
-        <Caret Line="96" Column="16" TopLine="78"/>
+        <Filename Value="FormPrincipal.pas"/>
+        <Caret Line="423" Column="20" TopLine="385"/>
       </Position4>
       <Position5>
-        <Filename Value="DefObjGraf.pas"/>
-        <Caret Line="77" Column="27" TopLine="63"/>
+        <Filename Value="FormPrincipal.pas"/>
+        <Caret Line="444" Column="52" TopLine="415"/>
       </Position5>
       <Position6>
-        <Filename Value="DefObjGraf.pas"/>
-        <Caret Line="96" Column="26" TopLine="70"/>
+        <Filename Value="FormPrincipal.pas"/>
+        <Caret Line="445" Column="29" TopLine="416"/>
       </Position6>
       <Position7>
-        <Filename Value="DefObjGraf.pas"/>
-        <Caret Line="193" Column="76" TopLine="167"/>
+        <Filename Value="FormPrincipal.pas"/>
+        <Caret Line="473" Column="52" TopLine="444"/>
       </Position7>
       <Position8>
-        <Filename Value="DefObjGraf.pas"/>
-        <Caret Line="566" Column="81" TopLine="436"/>
+        <Filename Value="VisGraf3D.pas"/>
+        <Caret Line="77" Column="30" TopLine="61"/>
       </Position8>
       <Position9>
-        <Filename Value="DefObjGraf.pas"/>
-        <Caret Line="612" Column="25" TopLine="564"/>
+        <Filename Value="VisGraf3D.pas"/>
+        <Caret Line="954" Column="42" TopLine="937"/>
       </Position9>
       <Position10>
-        <Filename Value="DefObjGraf.pas"/>
-        <Caret Line="616" Column="25" TopLine="568"/>
+        <Filename Value="VisGraf3D.pas"/>
+        <Caret Line="124" Column="20" TopLine="108"/>
       </Position10>
       <Position11>
-        <Filename Value="DefObjGraf.pas"/>
-        <Caret Line="648" Column="8" TopLine="619"/>
+        <Filename Value="VisGraf3D.pas"/>
+        <Caret Line="954" Column="53" TopLine="936"/>
       </Position11>
       <Position12>
-        <Filename Value="DefObjGraf.pas"/>
-        <Caret Line="96" Column="12" TopLine="79"/>
+        <Filename Value="frameVisorGraf.pas"/>
+        <Caret Line="183" Column="19" TopLine="92"/>
       </Position12>
       <Position13>
-        <Filename Value="DefObjGraf.pas"/>
-        <Caret Line="616" Column="10" TopLine="568"/>
+        <Filename Value="frameVisorGraf.pas"/>
+        <Caret Line="290" Column="40" TopLine="210"/>
       </Position13>
       <Position14>
-        <Filename Value="DefObjGraf.pas"/>
-        <Caret Line="649" Column="9" TopLine="621"/>
+        <Filename Value="frameVisorGraf.pas"/>
+        <Caret Line="43" Column="32" TopLine="28"/>
       </Position14>
       <Position15>
-        <Filename Value="DefObjGraf.pas"/>
-        <Caret Line="96" Column="17" TopLine="79"/>
+        <Filename Value="frameVisorGraf.pas"/>
+        <Caret Line="183" Column="41" TopLine="85"/>
       </Position15>
       <Position16>
-        <Filename Value="DefObjGraf.pas"/>
-        <Caret Line="77" Column="34" TopLine="60"/>
+        <Filename Value="frameVisorGraf.pas"/>
+        <Caret Line="53" Column="34" TopLine="37"/>
       </Position16>
       <Position17>
-        <Filename Value="DefObjGraf.pas"/>
-        <Caret Line="150" TopLine="135"/>
+        <Filename Value="CadDefinitions.pas"/>
+        <Caret Line="187" TopLine="172"/>
       </Position17>
       <Position18>
-        <Filename Value="ObjGraficos.pas"/>
-        <Caret Line="124" Column="40" TopLine="99"/>
+        <Filename Value="CadDefinitions.pas"/>
+        <Caret Line="156" Column="39" TopLine="138"/>
       </Position18>
       <Position19>
-        <Filename Value="DefObjGraf.pas"/>
-        <Caret Line="617" Column="26" TopLine="607"/>
+        <Filename Value="CadDefinitions.pas"/>
+        <Caret Line="112" Column="6" TopLine="101"/>
       </Position19>
       <Position20>
-        <Filename Value="DefObjGraf.pas"/>
-        <Caret Line="95" Column="48" TopLine="78"/>
+        <Filename Value="CadDefinitions.pas"/>
+        <Caret Line="55" Column="34" TopLine="37"/>
       </Position20>
       <Position21>
-        <Filename Value="DefObjGraf.pas"/>
-        <Caret Line="547" TopLine="451"/>
+        <Filename Value="CadDefinitions.pas"/>
+        <Caret Line="112" Column="52" TopLine="94"/>
       </Position21>
       <Position22>
-        <Filename Value="DefObjGraf.pas"/>
-        <Caret Line="145" TopLine="123"/>
+        <Filename Value="CadDefinitions.pas"/>
+        <Caret Line="287" Column="35" TopLine="269"/>
       </Position22>
       <Position23>
-        <Filename Value="DefObjGraf.pas"/>
-        <Caret Line="596" Column="21" TopLine="578"/>
+        <Filename Value="CadDefinitions.pas"/>
+        <Caret Line="81" Column="5" TopLine="55"/>
       </Position23>
       <Position24>
-        <Filename Value="DefObjGraf.pas"/>
-        <Caret Line="611" Column="5" TopLine="519"/>
+        <Filename Value="FormPrincipal.pas"/>
+        <Caret Line="353" Column="39" TopLine="230"/>
       </Position24>
       <Position25>
-        <Filename Value="DefObjGraf.pas"/>
-        <Caret Line="588" Column="15" TopLine="519"/>
+        <Filename Value="FormPrincipal.pas"/>
+        <Caret Line="430" Column="55" TopLine="410"/>
       </Position25>
       <Position26>
-        <Filename Value="..\..\_Librerias\MotGraf-0.2\MotGraf3d.pas"/>
-        <Caret Line="324" Column="13" TopLine="291"/>
+        <Filename Value="FormPrincipal.pas"/>
+        <Caret Line="120" Column="60" TopLine="17"/>
       </Position26>
       <Position27>
-        <Filename Value="ObjGraficos.pas"/>
-        <Caret Line="175" Column="7" TopLine="113"/>
+        <Filename Value="VisGraf3D.pas"/>
+        <Caret Line="341" Column="42" TopLine="70"/>
       </Position27>
       <Position28>
-        <Filename Value="DefObjGraf.pas"/>
-        <Caret Line="588" Column="26" TopLine="552"/>
+        <Filename Value="VisGraf3D.pas"/>
+        <Caret Line="88" Column="26" TopLine="287"/>
       </Position28>
       <Position29>
-        <Filename Value="ObjGraficos.pas"/>
-        <Caret Line="209" Column="3" TopLine="142"/>
+        <Filename Value="FormPrincipal.pas"/>
+        <Caret Line="355" Column="24" TopLine="343"/>
       </Position29>
       <Position30>
-        <Filename Value="ObjGraficos.pas"/>
-        <Caret Line="213" Column="6" TopLine="175"/>
+        <Filename Value="FormPrincipal.pas"/>
+        <Caret Line="356" TopLine="343"/>
       </Position30>
     </JumpHistory>
   </ProjectSession>

@@ -582,14 +582,13 @@ end;
 procedure TPtoCtrl.Dibujar();
 //Dibuja el Punto de control en la posición definida
 var
-  xpan, ypan: integer;
+  d: Single;
 begin
     if not visible then exit;    //validación
     v2d.SetPen(TColor($FF8000), 1);
     v2d.FijaRelleno(TColor($FF8000));
-    v2d.XYpant(fx,fy,fz, xpan, ypan);
-    v2d.rectangXYr(fx - ANC_PCT2, fy - ANC_PCT2,
-                   fx + ANC_PCT2, fy + ANC_PCT2, fz);
+    d := ANC_PCT2 / v2d.Zoom;  //corrige para que slaga siempre con el mismso tamaño
+    v2d.rectangXYr(fx - d, fy - d, fx + d, fy + d, fz);
 end;
 procedure TPtoCtrl.StartMove(xr, yr: Integer; x0, y0: Single);
 //Procedimiento para procesar el evento StartMove del punto de control

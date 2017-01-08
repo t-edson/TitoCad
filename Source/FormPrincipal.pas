@@ -5,7 +5,7 @@ uses
   Classes, SysUtils, Forms, Controls, Graphics, ExtCtrls, ActnList, Menus,
   StdCtrls, ComCtrls, LCLProc, SynEdit, MisUtils, FormConfig, FrameCfgGeneral,
   FrameCfgVista, CadDefinitions, frameVisorGraf, FormProject, Globales,
-  FrameExplorProyectos, FormControlVista, FormVistaProp, DefObjGraf;
+  FrameExplorProyectos, FormControlVista, FormVistaProp, DefObjGraf, VisGraf3D;
 const
   NUM_CUAD = 20;
   ZOOM_INI = 12;
@@ -116,7 +116,10 @@ type
     ExpProyPag  : TCadPagina;     //página seleccionada en el explorador de proyecto
     ExpProyVis  : TfraVisorGraf;  //vista seleccionada en el explorador de proyecto
     procedure ConfigPropertiesChanged;
-    procedure curPresupModific;
+    procedure curProject_Modific;
+    procedure curProject_ChangeState(VisState: TVisStateTyp);
+    procedure curProject_MouseMoveVirt(Shift: TShiftState; xp, yp: Integer; xv,
+      yv, zv: Single);
     procedure curProject_ChangeActivePage;
     procedure fraExplorProy_ClickDerPagina(pag: TCadPagina);
     procedure fraExplorProy_ClickDerProyec(pro: TCadProyecto);
@@ -342,10 +345,30 @@ begin
   fraExplorProy.Refrescar;   //Refresca explorador de proyecto
   RefrescarPanelVista;
 end;
-procedure TfrmPrincipal.curPresupModific;
-//Llamado cuando el presupuesto ha sido modificado.
+procedure TfrmPrincipal.curProject_Modific;
+//Llamado cuando el proyecto ha sido modificado.
 begin
   acArcGuar.Enabled:=true;
+end;
+procedure TfrmPrincipal.curProject_ChangeState(VisState: TVisStateTyp);
+begin
+  case VisState of
+  EP_NORMAL      : StatusBar1.Panels[0].Text := 'Normal';
+  EP_SELECMULT   : StatusBar1.Panels[0].Text := 'Selecc. Múltiple';
+  EP_MOV_OBJS    : StatusBar1.Panels[0].Text := 'Moviendo Objetos';
+  EP_DESP_PANT   : StatusBar1.Panels[0].Text := 'Desplaz. Pantalla';
+  EP_DESP_ANG    : StatusBar1.Panels[0].Text := 'Rotando Pantalla';
+  EP_DIMEN_OBJ   : StatusBar1.Panels[0].Text := 'Dimension.Objetos';
+  EP_RAT_ZOOM    : StatusBar1.Panels[0].Text := 'Zoom con ratón';
+  end;
+end;
+procedure TfrmPrincipal.curProject_MouseMoveVirt(Shift: TShiftState; xp,
+  yp: Integer; xv, yv, zv: Single);
+begin
+  StatusBar1.Panels[3].Text :=
+     'x=' + formatfloat('0.00', xv) + ' ' +
+     'y=' + formatfloat('0.00', yv) + ' ' +
+     'z=' + formatfloat('0.00', zv);
 end;
 procedure TfrmPrincipal.curProject_ChangeView(vista: TfraVisorGraf);
 begin
@@ -398,20 +421,23 @@ var
 begin
   //verifica si hay que guardar cambios
   if MensajeGuardarCambios = BOT_CANCEL then exit;
-  //Crea presupuesto temporal
+  //Crea proyecto temporal
   tmpPresp := TCadProyecto.Create;
   if not frmProject.ExecNew(tmpPresp) then begin
     //se canceló
     tmpPresp.Destroy;  //no nos va a servir
-    exit;  //sale dejando el presupuesto actual
+    exit;  //sale dejando el proyecto actual
   end;
-  //Cierra presupuesto actual y asigna el temporal al actual
+  //Cierra proyecto actual y asigna el temporal al actual
   acArcCerrarExecute(self);   //cierra actual si estaba abierto
   curProject := tmpPresp;  //apunta al temporal
-  curProject.OnModific:=@curPresupModific;
-  curProject.OnCambiaPerspec:=@curProject_ChangeView;
+  curProject.OnModific         :=@curProject_Modific;
+  curProject.OnCambiaPerspec   :=@curProject_ChangeView;
   curProject.OnChangeActivePage:=@curProject_ChangeActivePage;
+  curProject.OnMouseMoveVirt   :=@curProject_MouseMoveVirt;
+  curProject.OnChangeState     :=@curProject_ChangeState;
   curProject_ChangeActivePage;  //para refrescar en su visor
+  curProject.ActivePage.vista.InicVista;  //inicia los ejes
   //curProject.Modific:=true;
   curProject.guardarArchivo;
 //  menuRec.AgregArcReciente(curProject.GenerarNombreArch);  //Agrega archivo reciente
@@ -423,8 +449,8 @@ begin
 end;
 procedure TfrmPrincipal.acArcCerrarExecute(Sender: TObject);
 begin
-  if curProject = nil then exit;  //no hay presupuesto abierto
-  //verifica si hay presupuesto modificado
+  if curProject = nil then exit;  //no hay proyecto abierto
+  //verifica si hay proyecto modificado
   if MensajeGuardarCambios = BOT_CANCEL then exit;
   curProject.Destroy;
   curProject := nil;   //lo marca como cerrado
@@ -452,7 +478,7 @@ begin
 end;
 procedure TfrmPrincipal.acProAgrPagExecute(Sender: TObject);
 begin
-  if curProject = nil then exit;  //no hay presupuesto abierto
+  if curProject = nil then exit;  //no hay proyecto abierto
   curProject.AddPage;
   Refrescar;
 end;
