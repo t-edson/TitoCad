@@ -1,3 +1,11 @@
+Titocad 0.2.3
+=============
+Se mejora la selección de rectas.
+Se activa la visualización de las coordenadas del mouse en la barra de estados.
+Se activa la cuadrícula.
+Se definen coordenadas virtuales para el puntero del mouse, en pantalla.
+Se Modifica el dibujo de los puntos de control para que no se afecten por el zoom.
+
 Titocad 0.2.2
 =============
 Se crea el punto TMotPoint en MotGraf3D y se adecúan algunas rutinas para su uso.
@@ -9,6 +17,8 @@ Se elimina el campo "posición" de TPtoCtrl, ya que no tiene sentido en el nuevo 
 Se eliminan los puntos de control creados por defecto en TObjGraf, ya que en el nuevo 
 esquema, los objetos son muy variados y sus puntos de control también.
 Se modifica la clase TPtoCtrl, para adaptarla a la nueva forma de trabajo.
+
+
 
 Titocad 0.2.1
 =============
