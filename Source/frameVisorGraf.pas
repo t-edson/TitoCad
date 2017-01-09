@@ -29,8 +29,8 @@ type
     function GetxCam: Single;
     function GetyCam: Single;
     function GetZoom: Single;
-    procedure motEdiChangeView;
-    procedure motEdiModif;
+    procedure motEdi_ChangeView;
+    procedure visEdi_Modif;
     procedure SetAlfa(AValue: Single);
     procedure SetFi(AValue: Single);
     procedure SetxCam(AValue: Single);
@@ -40,17 +40,19 @@ type
     procedure SetyDes(AValue: integer);
     function GetyDes: integer;
     procedure SetZoom(AValue: Single);
-    procedure visEdiChangeState(VisState: TVisStateTyp);
-    procedure visEdiMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer
+    procedure visEdi_ChangeState(VisState: TVisStateTyp);
+    procedure visEdi_MouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer
       );
+    procedure visEdi_SendMessage(msg: string);
   public
     objetos : TlistObjGraf; //Lista de objetos
     visEdi  : TVisGraf3D;  //motor de edición  (La idesa es que pueda haber más de uno)
     Modif   : Boolean;      //bandera para indicar Diagrama Modificado
-    OnObjetosElim: TOnObjetosElim;   //cuando se elminan uno o más objetos
+    OnObjetosElim  : TOnObjetosElim;   //cuando se elminan uno o más objetos
     OnCambiaPerspec: procedure of object; //Cambia x_des,y_des,x_cam,y_cam,alfa,fi o zoom
     OnMouseMoveVirt: TEveMouseVisGraf;
-    OnChangeState: TEvChangeState;  //Cambia el estado del Visor
+    OnChangeState  : TEvChangeState;  //Cambia el estado del Visor
+    OnSendMessage  : TEvSendMessage;  //Envía un mensaje. Usado para respuesta a comandos
     procedure AgregarObjGrafico(og: TObjGraf; AutoPos: boolean=true);
     procedure EliminarObjGrafico(obj: TObjGraf);
     procedure EliminarTodosObj;
@@ -63,6 +65,8 @@ type
     property Alfa: Single read GetAlfa write SetAlfa;
     property Fi: Single read GetFi write SetFi;
     property Zoom: Single read GetZoom write SetZoom;
+    procedure ExecuteCommand(command: string);
+    function StateAsStr: string; //Cadena de descripción de estado
   public  //Inicialización
     procedure InicVista;
     constructor Create(AOwner: TComponent; ListObjGraf: TlistObjGraf);
@@ -109,7 +113,7 @@ begin
   //elimina
   visEdi.DeseleccionarTodos;  //por si acaso hay algun simbolo seleccionado
   objetos.Clear;          //limpia la lista de objetos
-  visEdi.RestaurarEstado;
+  visEdi.RestoreState;
   Modif := true;          //indica que se modificó
   if OnObjetosElim<>nil then OnObjetosElim;
 End;
@@ -163,11 +167,19 @@ function TfraVisorGraf.GetZoom: Single;
 begin
   Result := visEdi.v2d.Zoom;
 end;
-procedure TfraVisorGraf.motEdiChangeView;
+procedure TfraVisorGraf.ExecuteCommand(command: string);
+begin
+  visEdi.ExecuteCommand(command);
+end;
+function TfraVisorGraf.StateAsStr: string;
+begin
+  Result := visEdi.StateAsStr;
+end;
+procedure TfraVisorGraf.motEdi_ChangeView;
 begin
   if OnCambiaPerspec<>nil then OnCambiaPerspec();
 end;
-procedure TfraVisorGraf.motEdiModif;
+procedure TfraVisorGraf.visEdi_Modif;
 {Se ejecuta cuando el visor reporta cambios (dimensionamieno, posicionamiento, ...) en
  alguno de los objetos gráficos.}
 begin
@@ -177,11 +189,11 @@ procedure TfraVisorGraf.SetZoom(AValue: Single);
 begin
   visEdi.v2d.Zoom:=AValue;
 end;
-procedure TfraVisorGraf.visEdiChangeState(VisState: TVisStateTyp);
+procedure TfraVisorGraf.visEdi_ChangeState(VisState: TVisStateTyp);
 begin
   if OnChangeState<>nil then OnChangeState(VisState);
 end;
-procedure TfraVisorGraf.visEdiMouseMove(Sender: TObject; Shift: TShiftState; X,
+procedure TfraVisorGraf.visEdi_MouseMove(Sender: TObject; Shift: TShiftState; X,
   Y: Integer);
 var
   xv, yv: Single;
@@ -189,6 +201,11 @@ begin
   visEdi.v2d.XYvirt(X, Y, 0, xv, yv);
   if OnMouseMoveVirt<>nil then OnMouseMoveVirt(Shift, X, Y, xv, yv, 0);
 end;
+procedure TfraVisorGraf.visEdi_SendMessage(msg: string);
+begin
+  if OnSendMessage<>nil then OnSendMessage(msg);
+end;
+
 function TfraVisorGraf.GetAlfa: Single;
 begin
   Result := visEdi.v2d.Alfa;
@@ -222,11 +239,11 @@ begin
   objetos := ListObjGraf;  //recibe lista de objetos
   //objetos:= TlistObjGraf.Create(true);  //lista de objetos
   visEdi := TVisGraf3D.Create(PaintBox1, objetos);
-  visEdi.OnModif:=@motEdiModif;
-  visEdi.OnChangeView:=@motEdiChangeView;
-  visEdi.OnMouseMove:=@visEdiMouseMove;
-  visEdi.OnChangeState:=@visEdiChangeState;
-//  self.OnKeyDown:=;
+  visEdi.OnModif      :=@visEdi_Modif;
+  visEdi.OnChangeView :=@motEdi_ChangeView;
+  visEdi.OnMouseMove  :=@visEdi_MouseMove;
+  visEdi.OnChangeState:=@visEdi_ChangeState;
+  visEdi.OnSendMessage:=@visEdi_SendMessage;
 end;
 destructor TfraVisorGraf.Destroy;
 begin

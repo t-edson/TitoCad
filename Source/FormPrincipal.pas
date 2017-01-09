@@ -3,9 +3,9 @@ unit FormPrincipal;
 interface
 uses
   Classes, SysUtils, Forms, Controls, Graphics, ExtCtrls, ActnList, Menus,
-  StdCtrls, ComCtrls, LCLProc, LCLType, SynEdit, MisUtils, FormConfig,
+  StdCtrls, ComCtrls, LCLProc, LCLType, Buttons, SynEdit, MisUtils, FormConfig,
   FrameCfgGeneral, FrameCfgVista, CadDefinitions, frameVisorGraf, FormProject,
-  Globales, FrameExplorProyectos, FormControlVista, FormVistaProp, SynFacilCompletion,
+  Globales, FrameExplorProyectos, FormControlVista, FormVistaProp,
   VisGraf3D;
 const
   NUM_CUAD = 20;
@@ -36,6 +36,10 @@ type
     acVisPropied: TAction;
     acVerVisSup: TAction;
     acVerConVista: TAction;
+    BitBtn1: TBitBtn;
+    Edit1: TEdit;
+    Label1: TLabel;
+    Memo1: TMemo;
     MenuItem10: TMenuItem;
     MenuItem11: TMenuItem;
     MenuItem12: TMenuItem;
@@ -74,14 +78,16 @@ type
     MenuItem8: TMenuItem;
     MenuItem9: TMenuItem;
     PageControl1: TPageControl;
+    Panel1: TPanel;
+    panCommand: TPanel;
     PopupVista: TPopupMenu;
     PopupPagina: TPopupMenu;
     PopupProject: TPopupMenu;
     PopupObjetos: TPopupMenu;
     Splitter2: TSplitter;
     StatusBar1: TStatusBar;
-    edComan: TSynEdit;
     TabSheet1: TTabSheet;
+    TabSheet2: TTabSheet;
     ToolBar1: TToolBar;
     ToolButton1: TToolButton;
     ToolButton10: TToolButton;
@@ -107,19 +113,19 @@ type
     procedure acVerConVistaExecute(Sender: TObject);
     procedure acVerVisSupExecute(Sender: TObject);
     procedure acVisPropiedExecute(Sender: TObject);
-    procedure edComanKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState
-      );
+    procedure Edit1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
+    procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure FormShow(Sender: TObject);
     procedure acHerConfigExecute(Sender: TObject);
   private
-    hlt: TSynFacilComplet;
     curProject  : TCadProyecto;
     ExpProyPag  : TCadPagina;     //página seleccionada en el explorador de proyecto
     ExpProyVis  : TfraVisorGraf;  //vista seleccionada en el explorador de proyecto
     procedure ConfigPropertiesChanged;
+    procedure curProjectActivePagevistaSendMessage(msg: string);
     procedure curProject_Modific;
     procedure curProject_ChangeState(VisState: TVisStateTyp);
     procedure curProject_MouseMoveVirt(Shift: TShiftState; xp, yp: Integer; xv,
@@ -176,12 +182,8 @@ begin
   fraExplorProy.Align:=alLeft;
   Splitter2.Align:=alLeft;
   fraExplorProy.Visible:=true;
-  edComan.Align:=alBottom;
+  panCommand.Align:=alBottom;
   PageControl1.Align:=alClient;
-
-  hlt := TSynFacilComplet.Create(self);  //my highlighter
-  hlt.LoadFromFile('TitoCadCommands.xml');  //load syntax
-  hlt.SelectEditor(edComan);  //assign to editor
 end;
 procedure TfrmPrincipal.FormShow(Sender: TObject);
 begin
@@ -200,9 +202,21 @@ begin
 end;
 procedure TfrmPrincipal.FormDestroy(Sender: TObject);
 begin
-  hlt.Destroy;
   if curProject<>nil then curProject.Destroy;
 end;
+procedure TfrmPrincipal.FormKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+{Intercepta el teclado para administrarlo de acuerdo al control elegido}
+begin
+  if curProject = nil then exit;
+  //Envía todos los comandos al cuadro de comandos
+  if TabSheet1.Focused then begin
+    edit1.SetFocus;  //pasa el enfoque
+  end else if PageControl1.Focused then begin
+    edit1.SetFocus;  //pasa el enfoque
+  end;
+end;
+
 procedure TfrmPrincipal.ConfigPropertiesChanged;
 //Se cambian las propiedades de la configuración
 begin
@@ -361,15 +375,7 @@ begin
 end;
 procedure TfrmPrincipal.curProject_ChangeState(VisState: TVisStateTyp);
 begin
-  case VisState of
-  EP_NORMAL      : StatusBar1.Panels[0].Text := 'Normal';
-  EP_SELECMULT   : StatusBar1.Panels[0].Text := 'Selecc. Múltiple';
-  EP_MOV_OBJS    : StatusBar1.Panels[0].Text := 'Moviendo Objetos';
-  EP_DESP_PANT   : StatusBar1.Panels[0].Text := 'Desplaz. Pantalla';
-  EP_DESP_ANG    : StatusBar1.Panels[0].Text := 'Rotando Pantalla';
-  EP_DIMEN_OBJ   : StatusBar1.Panels[0].Text := 'Dimension.Objetos';
-  EP_RAT_ZOOM    : StatusBar1.Panels[0].Text := 'Zoom con ratón';
-  end;
+  StatusBar1.Panels[0].Text := curProject.ActivePage.vista.StateAsStr;
 end;
 procedure TfrmPrincipal.curProject_MouseMoveVirt(Shift: TShiftState; xp,
   yp: Integer; xv, yv, zv: Single);
@@ -423,6 +429,31 @@ begin
     exit(compSource)
   end;
 end;
+procedure TfrmPrincipal.Edit1KeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+var
+  lin: String;
+begin
+  if curProject = nil then exit;
+  if key = VK_RETURN then begin
+    lin := edit1.Text;
+    if trim(lin) = '' then exit;
+    lin := UpCase(lin);  //Convierte a mayúscula
+    //Comando introducido.
+    curProject.ActivePage.vista.ExecuteCommand(lin);
+  end else if key = VK_ESCAPE then begin
+    //Covierte tecla en comando
+    curProject.ActivePage.vista.ExecuteCommand('CANCEL');
+  end;
+end;
+
+procedure TfrmPrincipal.curProjectActivePagevistaSendMessage(msg: string);
+{Ha llegado un mensaje del proyecto}
+begin
+  Memo1.Lines.Add(Edit1.Text);
+  Label1.Caption:= msg;
+  Edit1.Text := '';
+end;
 ///////////////////////////// Acciones ///////////////////////////////
 procedure TfrmPrincipal.acArcNueProExecute(Sender: TObject);
 var
@@ -445,6 +476,7 @@ begin
   curProject.OnChangeActivePage:=@curProject_ChangeActivePage;
   curProject.OnMouseMoveVirt   :=@curProject_MouseMoveVirt;
   curProject.OnChangeState     :=@curProject_ChangeState;
+  curProject.ActivePage.vista.OnSendMessage:=@curProjectActivePagevistaSendMessage;
   curProject_ChangeActivePage;  //para refrescar en su visor
   curProject.ActivePage.vista.InicVista;  //inicia los ejes
   //curProject.Modific:=true;
@@ -484,17 +516,6 @@ end;
 procedure TfrmPrincipal.acVisPropiedExecute(Sender: TObject);
 begin
   frmVistaProp.Exec(ExpProyVis);
-end;
-procedure TfrmPrincipal.edComanKeyDown(Sender: TObject; var Key: Word;
-  Shift: TShiftState);
-var
-  lin: String;
-begin
-  if key = VK_RETURN then begin
-    //Comando introducido
-    lin := edComan.Lines[edComan.CaretY-1];
-    MsgBox(lin);
-  end;
 end;
 procedure TfrmPrincipal.acProAgrPagExecute(Sender: TObject);
 begin
