@@ -3,9 +3,10 @@ unit FormPrincipal;
 interface
 uses
   Classes, SysUtils, Forms, Controls, Graphics, ExtCtrls, ActnList, Menus,
-  StdCtrls, ComCtrls, LCLProc, SynEdit, MisUtils, FormConfig, FrameCfgGeneral,
-  FrameCfgVista, CadDefinitions, frameVisorGraf, FormProject, Globales,
-  FrameExplorProyectos, FormControlVista, FormVistaProp, DefObjGraf, VisGraf3D;
+  StdCtrls, ComCtrls, LCLProc, LCLType, SynEdit, MisUtils, FormConfig,
+  FrameCfgGeneral, FrameCfgVista, CadDefinitions, frameVisorGraf, FormProject,
+  Globales, FrameExplorProyectos, FormControlVista, FormVistaProp, SynFacilCompletion,
+  VisGraf3D;
 const
   NUM_CUAD = 20;
   ZOOM_INI = 12;
@@ -106,12 +107,15 @@ type
     procedure acVerConVistaExecute(Sender: TObject);
     procedure acVerVisSupExecute(Sender: TObject);
     procedure acVisPropiedExecute(Sender: TObject);
+    procedure edComanKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState
+      );
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure acHerConfigExecute(Sender: TObject);
   private
+    hlt: TSynFacilComplet;
     curProject  : TCadProyecto;
     ExpProyPag  : TCadPagina;     //página seleccionada en el explorador de proyecto
     ExpProyVis  : TfraVisorGraf;  //vista seleccionada en el explorador de proyecto
@@ -174,6 +178,10 @@ begin
   fraExplorProy.Visible:=true;
   edComan.Align:=alBottom;
   PageControl1.Align:=alClient;
+
+  hlt := TSynFacilComplet.Create(self);  //my highlighter
+  hlt.LoadFromFile('TitoCadCommands.xml');  //load syntax
+  hlt.SelectEditor(edComan);  //assign to editor
 end;
 procedure TfrmPrincipal.FormShow(Sender: TObject);
 begin
@@ -192,6 +200,7 @@ begin
 end;
 procedure TfrmPrincipal.FormDestroy(Sender: TObject);
 begin
+  hlt.Destroy;
   if curProject<>nil then curProject.Destroy;
 end;
 procedure TfrmPrincipal.ConfigPropertiesChanged;
@@ -475,6 +484,17 @@ end;
 procedure TfrmPrincipal.acVisPropiedExecute(Sender: TObject);
 begin
   frmVistaProp.Exec(ExpProyVis);
+end;
+procedure TfrmPrincipal.edComanKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+var
+  lin: String;
+begin
+  if key = VK_RETURN then begin
+    //Comando introducido
+    lin := edComan.Lines[edComan.CaretY-1];
+    MsgBox(lin);
+  end;
 end;
 procedure TfrmPrincipal.acProAgrPagExecute(Sender: TObject);
 begin

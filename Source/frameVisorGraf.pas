@@ -177,12 +177,10 @@ procedure TfraVisorGraf.SetZoom(AValue: Single);
 begin
   visEdi.v2d.Zoom:=AValue;
 end;
-
 procedure TfraVisorGraf.visEdiChangeState(VisState: TVisStateTyp);
 begin
   if OnChangeState<>nil then OnChangeState(VisState);
 end;
-
 procedure TfraVisorGraf.visEdiMouseMove(Sender: TObject; Shift: TShiftState; X,
   Y: Integer);
 var
@@ -191,7 +189,6 @@ begin
   visEdi.v2d.XYvirt(X, Y, 0, xv, yv);
   if OnMouseMoveVirt<>nil then OnMouseMoveVirt(Shift, X, Y, xv, yv, 0);
 end;
-
 function TfraVisorGraf.GetAlfa: Single;
 begin
   Result := visEdi.v2d.Alfa;
@@ -208,64 +205,6 @@ procedure TfraVisorGraf.SetFi(AValue: Single);
 begin
   visEdi.v2d.Fi := AValue;
 end;
-{procedure TVisGraf3D.KeyDown(Sender: TObject; var Key: Word;
-  Shift: TShiftState);
-//Procesa el evento KeyDown()
-//var
-//  v: TObjGraf;
-begin
-  If Shift = [] Then begin  //********************* Teclas normales ***********************
-      //If tec = 13 Then PropiedSeleccion ;  //Debe procesarlo el diagrama
-      If Key = VK_DELETE Then ElimSeleccion;  //DELETE
-      If Key = 9 Then SeleccionarSiguiente;  //TAB
-      If Key = 27 Then begin  //ESCAPE
-          DeseleccionarTodos;
-          Refrescar;
-      end;
-      If seleccion.Count = 0 Then     ;  //si no hay objetos seleccionados
-          If Key = 37 Then Call moverDerecha(DESPLAZ_MENOR)        ;  //derecha
-          If Key = 39 Then Call moverIzquierda(DESPLAZ_MENOR)      ;  //izquierda
-          If Key = 40 Then Call moverArriba(DESPLAZ_MENOR)         ;  //arriba
-          If Key = 38 Then Call moverAbajo(DESPLAZ_MENOR)          ;  //abajo
-      Else        ;  //hay seleccionados
-          If Key = 37 Then ;  //derecha
-              For Each v In seleccion
-                  If Not v.Bloqueado Then v.X = v.X - DESPLAZ_MENOR
-              Next
-              Call Refrescar
-          End If
-          If Key = 39 Then ;  //izquierda
-              For Each v In seleccion
-                  If Not v.Bloqueado Then v.X = v.X + DESPLAZ_MENOR
-              Next
-              Call Refrescar
-          End If
-          If Key = 40 Then ;  //arriba
-              For Each v In seleccion
-                  If Not v.Bloqueado Then v.Y = v.Y + DESPLAZ_MENOR
-              Next
-              Call Refrescar
-          End If
-          If Key = 38 Then ;  //abajo
-              For Each v In seleccion
-                  If Not v.Bloqueado Then v.Y = v.Y - DESPLAZ_MENOR
-              Next
-              Call Refrescar
-          End If
-      end If
-  end else If Shift = [ssShift] Then begin //**********************Shift + ************************
-      If Key = 9 Then Call SeleccionarAnterior              ;  //TAB
-  end else If Shift = [ssCtrl] Then begin  //**********************Ctrl + ************************
-      If Key = 107 Then Call AmpliarClick      ;  //+
-      If Key = 109 Then Call ReducirClick      ;  //-
-      If Key = 37 Then Call moverDerecha(DESPLAZ_MAYOR)   ;  //derecha
-      If Key = 39 Then Call moverIzquierda(DESPLAZ_MAYOR) ;  //izquierda
-      If Key = 40 Then Call moverArriba(DESPLAZ_MAYOR)    ;  //arriba
-      If Key = 38 Then Call moverAbajo(DESPLAZ_MAYOR)     ;  //abajo
-  end else If Shift = [ssShift, ssCtrl] Then  begin  //******************Shift + Ctrl*************************
-    picSal.MousePointer := vbSizeAll;  //indica modo Zoom + desplazamiento
-  end;
-end;}
 procedure TfraVisorGraf.InicVista;
 {Ubica la perspectiva y los ejes, de forma que el origen (0,0) aparezza en la
 esquina inferior izquierda. Se debe llamar cuando ya el frame tenga su tamaño final}
@@ -283,13 +222,12 @@ begin
   objetos := ListObjGraf;  //recibe lista de objetos
   //objetos:= TlistObjGraf.Create(true);  //lista de objetos
   visEdi := TVisGraf3D.Create(PaintBox1, objetos);
-
   visEdi.OnModif:=@motEdiModif;
   visEdi.OnChangeView:=@motEdiChangeView;
   visEdi.OnMouseMove:=@visEdiMouseMove;
   visEdi.OnChangeState:=@visEdiChangeState;
+//  self.OnKeyDown:=;
 end;
-
 destructor TfraVisorGraf.Destroy;
 begin
   visEdi.Destroy;

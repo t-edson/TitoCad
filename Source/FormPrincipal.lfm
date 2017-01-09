@@ -138,7 +138,7 @@ object frmPrincipal: TfrmPrincipal
   end
   inline edComan: TSynEdit
     Left = 240
-    Height = 46
+    Height = 42
     Top = 488
     Width = 401
     Font.Height = -13
@@ -148,6 +148,7 @@ object frmPrincipal: TfrmPrincipal
     ParentColor = False
     ParentFont = False
     TabOrder = 4
+    OnKeyDown = edComanKeyDown
     Gutter.Width = 24
     Gutter.MouseActions = <>
     RightGutter.Width = 0
