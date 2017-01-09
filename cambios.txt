@@ -1,8 +1,17 @@
+Titocad 0.2.5
+=============
+Se mejora la estructura de la clase TVisGraf3D, para que permita la ejecución de comandos.
+Se continúa reordenando la clase TVisGraf3D. 
+Se implementa el procesamiento simple del comando LINE.
+
 Titocad 0.2.4
 =============
 Se reescriben las rutinas del visor TVisGraf3D, creando procedimientos por cada estado
-del Visor.
+del Visor. De esa forma se orienta el código al manejo de estados, en lugar de eventos,
+facilitando el mantenimiento, y la ampliación.
 Se crea el evento para manejar cambiso de estado en el visor TVisGraf3D. 
+Se ha reordenado y revisado considerablemente el código, cambiando algunos nombres y 
+parámetros.
 
 
 Titocad 0.2.3
