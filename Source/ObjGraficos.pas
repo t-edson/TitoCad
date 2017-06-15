@@ -6,7 +6,7 @@ unit ObjGraficos;
 {$mode objfpc}{$H+}
 interface
 uses
-  Graphics, LCLProc, fgl,
+  Classes, Graphics, LCLProc, fgl,
   MotGraf3d, DefObjGraf;
 
 type
@@ -32,9 +32,10 @@ end;
 {Se define al objeto para que sea compatible con archivos DXF.}
 TObjGrafDXF = class(TObjGraf)  //objeto gráfico DXF
 private
-  pc0, pc1: TPtoCtrl;
+  pc0, pc1, pcM: TPtoCtrl;
   procedure PtoCtrl0_Move(xvTar, yvTar, dx, dy: Single);
   procedure PtoCtrl1_Move(xvTar, yvTar, dx, dy: Single);
+  procedure PtoCtrlM_Move(xvTar, yvTar, dxv, dyv: Single);
 public  //Campos equivalentes a los de una entidad DXF
   etype: TDXFentType;   //tipo de entidad
   idDxf: string;        //identificador de la entidad
@@ -52,20 +53,22 @@ public  //Campos equivalentes a los de una entidad DXF
     64 = The polyline is a polyface mesh.
     128 = The linetype pattern is generated continuously around the vertices of this polyline.}
     //propiedades gráficas
-    P0: TMotPoint;
-    P1: TMotPoint;
-    radius: double;
-    vertexs: TObjGrafDXF_list;   {Lista de Vertex. Solo se instancia para objetos
-                                 complejos. OJO!!! Es muy pesado guardar una lista de
-                                 TObjGrafDXF. Debería optimizarse}
-    blkName: string;    //usado cuando es de tipo etyInsert.
+  P0: TMotPoint;
+  P1: TMotPoint;
+  radius: double;
+  vertexs: TObjGrafDXF_list;   {Lista de Vertex. Solo se instancia para objetos
+                               complejos. OJO!!! Es muy pesado guardar una lista de
+                               TObjGrafDXF. Debería optimizarse}
+  blkName: string;    //usado cuando es de tipo etyInsert.
+public
+  procedure SetP0(const xv,yv,zv: Single);
+  procedure SetP1(const xv,yv,zv: Single);
+  procedure ReubicElemen; override;
 public
   procedure Dibujar; override;  //Dibuja el objeto gráfico
   function LoSelecciona(xp, yp:integer): Boolean; override;
   constructor Create(mGraf: TMotGraf); override;
 //  destructor Destroy; override;
-private
-  procedure ReubicElemen; override;
 end;
 
 implementation
@@ -112,15 +115,32 @@ begin
   P1.y:=yvTar;
   ReConstGeom;
 end;
-
+procedure TObjGrafDXF.PtoCtrlM_Move(xvTar, yvTar, dxv, dyv: Single);
+begin
+  ReConstGeom;
+end;
+procedure TObjGrafDXF.SetP0(const xv, yv, zv: Single);
+begin
+  P0.x:=xv;
+  P0.y:=yv;
+  P0.z:=zv;
+  ReubicElemen;
+end;
+procedure TObjGrafDXF.SetP1(const xv, yv, zv: Single);
+begin
+  P1.x:=xv;
+  P1.y:=yv;
+  P1.z:=zv;
+  ReubicElemen;
+end;
 constructor TObjGrafDXF.Create(mGraf: TMotGraf);
 begin
   inherited Create(mGraf);
-  //Notar que lso puntos de control son estáticos, aunque tal vez sea mejor, crearlos
+  //Notar que los puntos de control son estáticos, aunque tal vez sea mejor, crearlos
   //solo cuando el objeto está seleccionado.
-//  pc0:=TPtoCtrl.Create(TD_SUP_IZQ, TD_SUP_IZQ);
   pc0:=AddPtoControl(TD_SUP_IZQ,@PtoCtrl0_Move);
   pc1:=AddPtoControl(TD_SUP_IZQ,@PtoCtrl1_Move);
+  pcM:=AddPtoControl(TD_SUP_IZQ,@PtoCtrlM_Move);
   ReConstGeom;     //Se debe llamar después de crear los puntos de control para poder ubicarlos
   nombre := 'Objeto';
 end;
@@ -129,10 +149,13 @@ begin
   //Ubica puntos de control
   pc0.Ubicar(P0);
   pc1.Ubicar(P1);
+  pcM.Ubicar((P0.x + P1.x)/2, (P0.y + P1.y)/2, (P0.z + P1.z)/2 );
 end;
 procedure TObjGrafDXF.Dibujar;
 var
   pdc  : TPtoCtrl;
+  Ptos : Array of TPoint;
+  i: Integer;
 begin
   If Marcado and Highlight Then begin
     v2d.SetPen(TColor($FF8000), 2, psSolid);
@@ -147,34 +170,23 @@ begin
 //      v2d.Circulo(xv + ent.x0, y + ent.y0,
 //                  ent.radius);
 //    end;
-//  etyPolyline: begin
-//      //Por eficiencia, se dibuja la polilínea directamente del canvas
-//      SetLength(Ptos, ent.vertexs.Count);   //dimensiona
-//      //transforma puntos
-//      for i:= 0 to ent.vertexs.Count-1 do begin
-//        Ptos[i].x := v2d.XPant(xv + ent.vertexs[i].x0);
-//        Ptos[i].y := v2d.YPant(y + ent.vertexs[i].y0);
-//      end;
-//      //v2d.Canvas.Polygon(Ptos);   //dibuja
-//      v2d.Canvas.Polyline(Ptos);
-//    end;
+{  etyPolyline: begin
+      //Por eficiencia, se dibuja la polilínea directamente del canvas
+      SetLength(Ptos, vertexs.Count);   //dimensiona
+      //transforma puntos
+      for i:= 0 to vertexs.Count-1 do begin
+        Ptos[i].x := v2d.XPant(vertexs[i].x0);
+        Ptos[i].y := v2d.YPant(vertexs[i].y0);
+      end;
+      //v2d.Canvas.Polygon(Ptos);   //dibuja
+      v2d.cv.Polyline(Ptos);
+    end;}
   end;
-{
-  //Dibuja etiqueta
-//  v2d.SetPen(clGray, 1);
-  v2d.SetText(clWhite, 11,'', false);
-  v2d.Texto(xv + 2, Y + Height + 20, 0, nombre);
-  //muestra un rectángulo
-  v2d.SetPen(clWhite, 1, psSolid);
-  v2d.FijaRelleno(clBlack);
-  v2d.rectangXYr(xv, y+10, xv+width, y+height,0);
-  }
   //---------------dibuja marca de seleccion--------------
   if Selected Then begin
     for pdc in PtosControl do pdc.Dibujar;   //Dibuja puntos de control
   end;
 end;
-
 function TObjGrafDXF.LoSelecciona(xp, yp: integer): Boolean;
 {Versión personalizada}
 const

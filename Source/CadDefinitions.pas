@@ -5,14 +5,6 @@ uses
   Classes, SysUtils, fgl, MisUtils, Graphics,
   frameVisorGraf, DefObjGraf, ObjGraficos, VisGraf3D;
 type
-  {Usado solo para pasar parámetros geométricos.
-   Podría usarse el tipo TMotPoint, de MoTGraf3D, pero se quiere evitar una dependencia
-   más, y además, el formato de datos de TMotPoint, tiene más campos, ya que está
-   orientado al procesamiento gráfico}
-  TPoint3 = record   //representa a un punto virtual
-    x,y,z : Single;
-  end;
-
   Tunidades = (
     tmuMetros,
     tmuPies
@@ -47,7 +39,6 @@ type
     padre      : TCadProyecto;      //Referencia al objeto padre.
     objetosGraf: TCadObjetos_list;  //Lista de elementos gráficos
     objetos : TlistObjGraf; //Lista de objetos
-    procedure AddLine(const p1, p2: TPoint3);
   public  //Manejo de las vistas
     vista: TfraVisorGraf;   //una sola vista por el momento
     OnCambiaPerspec: TEveCambiaPerspec;  //Cambia x_des,y_des,x_cam,y_cam,alfa,fi o zoom
@@ -116,28 +107,7 @@ procedure TCadPagina.vistaMouseMoveVirt(Shift: TShiftState; xp, yp: Integer;
 begin
   if OnMouseMoveVirt<>nil then OnMouseMoveVirt(Shift, xp, yp, xv, yv, 0);
 end;
-
-procedure TCadPagina.AddLine(const p1, p2: TPoint3);
-{Agrega una línea a la lista de objetos.}
-var
-  lin : TObjGrafDXF;
-begin
-  lin := TObjGrafDXF.Create(vista.visEdi.v2d);
-  lin.P0.x := p1.x;
-  lin.P0.y := p1.y;
-  lin.P0.z := p1.z;
-
-  lin.P1.x:=p2.x;
-  lin.P1.y:=p2.y;
-  lin.P1.z:=p2.z;
-
-  lin.Ubicar(p1.x, p1.y);
-
-  vista.AgregarObjGrafico(lin);
-end;
 constructor TCadPagina.Create;
-var
-  og: TMiObjeto;
 begin
   objetosGraf := TCadObjetos_list.Create(true);
   objetos := TlistObjGraf.Create(true);   //contenedor
@@ -155,8 +125,6 @@ begin
   vista.OnMouseMoveVirt:=@vistaMouseMoveVirt;
   vista.OnChangeState:=@vistaChangeState;
 
-og := TMiObjeto.Create(vista.visEdi.v2d);
-vista.AgregarObjGrafico(og);
 
 end;
 destructor TCadPagina.Destroy;

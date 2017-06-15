@@ -1,0 +1,71 @@
+object fraCfgVista: TfraCfgVista
+  Left = 0
+  Height = 240
+  Top = 0
+  Width = 320
+  ClientHeight = 240
+  ClientWidth = 320
+  TabOrder = 0
+  DesignLeft = 318
+  DesignTop = 327
+  object chkVerEjes: TCheckBox
+    Left = 32
+    Height = 19
+    Top = 24
+    Width = 137
+    Caption = 'Ver &Ejes Coordenados.'
+    OnChange = chkVerEjesChange
+    TabOrder = 0
+  end
+  object spnLongEje: TFloatSpinEdit
+    Left = 168
+    Height = 23
+    Top = 56
+    Width = 68
+    Alignment = taRightJustify
+    Increment = 1
+    MaxValue = 1000
+    MinValue = 0
+    TabOrder = 1
+    Value = 0
+  end
+  object Label1: TLabel
+    Left = 32
+    Height = 15
+    Top = 60
+    Width = 90
+    Caption = 'Longitud de ejes:'
+    ParentColor = False
+  end
+  object chkVerCoorPunt: TCheckBox
+    Left = 32
+    Height = 19
+    Top = 96
+    Width = 267
+    Caption = 'Mostrar Coord. del &Puntero en barra de estado.'
+    OnChange = chkVerEjesChange
+    TabOrder = 2
+  end
+  object Label2: TLabel
+    Left = 32
+    Height = 28
+    Top = 133
+    Width = 136
+    AutoSize = False
+    Caption = 'Incremento de ángulo con la rueda del Ratón:'
+    ParentColor = False
+    WordWrap = True
+  end
+  object spnIncrWheel: TFloatSpinEdit
+    Left = 168
+    Height = 23
+    Top = 136
+    Width = 66
+    Alignment = taRightJustify
+    Increment = 1
+    MaxValue = 100
+    MinValue = 0
+    TabOrder = 3
+    Value = 0
+  end
+end

@@ -1,0 +1,50 @@
+object fraCfgGeneral: TfraCfgGeneral
+  Left = 0
+  Height = 240
+  Top = 0
+  Width = 320
+  ClientHeight = 240
+  ClientWidth = 320
+  TabOrder = 0
+  DesignLeft = 397
+  DesignTop = 353
+  object chkVerBarHer: TCheckBox
+    Left = 32
+    Height = 19
+    Top = 24
+    Width = 157
+    Caption = 'Ver Barra de &Herramientas'
+    TabOrder = 0
+  end
+  object RadioGroup1: TRadioGroup
+    Left = 32
+    Height = 49
+    Top = 48
+    Width = 222
+    AutoFill = True
+    Caption = 'Toolbar'
+    ChildSizing.LeftRightSpacing = 6
+    ChildSizing.EnlargeHorizontal = crsHomogenousChildResize
+    ChildSizing.EnlargeVertical = crsHomogenousChildResize
+    ChildSizing.ShrinkHorizontal = crsScaleChilds
+    ChildSizing.ShrinkVertical = crsScaleChilds
+    ChildSizing.Layout = cclLeftToRightThenTopToBottom
+    ChildSizing.ControlsPerLine = 3
+    ClientHeight = 29
+    ClientWidth = 218
+    Columns = 3
+    Items.Strings = (
+      'Small Icons'
+      'Big Icons'
+    )
+    TabOrder = 1
+  end
+  object chkVerBarEst: TCheckBox
+    Left = 32
+    Height = 19
+    Top = 112
+    Width = 121
+    Caption = 'Ver Barra de &Estado'
+    TabOrder = 2
+  end
+end

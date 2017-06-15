@@ -10,7 +10,7 @@ unit frameVisorGraf;
 interface
 uses
   Classes, Forms, ExtCtrls,
-  ObjGraficos, VisGraf3D, DefObjGraf;
+  VisGraf3D, DefObjGraf;
 type
   TOnObjetosElim = procedure of object;
   {Evento para movimiento del Mouse. Notar que además de las coordenaadas del ratón,
@@ -53,10 +53,7 @@ type
     OnMouseMoveVirt: TEveMouseVisGraf;
     OnChangeState  : TEvChangeState;  //Cambia el estado del Visor
     OnSendMessage  : TEvSendMessage;  //Envía un mensaje. Usado para respuesta a comandos
-    procedure AgregarObjGrafico(og: TObjGraf; AutoPos: boolean=true);
-    procedure EliminarObjGrafico(obj: TObjGraf);
     procedure EliminarTodosObj;
-    procedure ElimSeleccion;
   public //Propiedades reflejadas
     property xDes: integer read GetxDes write SetxDes;
     property yDes: integer read GetyDes write SetyDes;
@@ -76,36 +73,6 @@ type
 implementation
 {$R *.lfm}
 
-procedure TfraVisorGraf.AgregarObjGrafico(og: TObjGraf; AutoPos: boolean = true);
-//Agrega un objeto grafico al editor. El objeto gráfico debe haberse creado previamente,
-//y ser de tipo TObjGraf o un descendiente. "AutoPos", permite posicionar automáticamente
-//al objeto en pantalla, de modo que se evite ponerlo siempre en la misma posición.
-var
-  x: single;
-  y: single;
-begin
-  Modif := True;        //Marca el editor como modificado
-  //Posiciona tratando de que siempre aparezca en pantalla
-  if AutoPos Then begin  //Se calcula posición
-    x := visEdi.v2d.Xvirt(100, 100) + 30 * objetos.Count Mod 400;
-    y := visEdi.v2d.Yvirt(100, 100) + 30 * objetos.Count Mod 400;
-    og.Ubicar(x,y);
-  end;
-  //configura eventos para ser controlado por este editor
-  og.OnSelec   := @visEdi.ObjGraf_Select;     //referencia a procedimiento de selección
-  og.OnDeselec := @visEdi.ObjGraf_Unselec;    //referencia a procedimiento de "de-selección"
-  og.OnCamPunt := @visEdi.ObjGraf_SetPointer; //procedimiento para cambiar el puntero
-//  Refrescar(s)   ;             //Refresca objeto
-  objetos.Add(og);               //agrega elemento
-end;
-procedure TfraVisorGraf.EliminarObjGrafico(obj: TObjGraf);  //elimina un objeto grafico
-begin
-  Modif := True;  //Marca documento como modificado
-  obj.Deselec;  //por si acaso
-  objetos.Remove(obj);
-  obj := nil;
-  if OnObjetosElim<>nil then OnObjetosElim;
-End;
 procedure TfraVisorGraf.EliminarTodosObj;
 //Elimina todos los objetos gráficos existentes
 begin
@@ -117,20 +84,6 @@ begin
   Modif := true;          //indica que se modificó
   if OnObjetosElim<>nil then OnObjetosElim;
 End;
-procedure TfraVisorGraf.ElimSeleccion;
-//Elimina la selección.
-var
-  v: TObjGraf;
-  tmp: TOnObjetosElim;
-begin
-  tmp := OnObjetosElim;  //guarda evento
-  OnObjetosElim := nil; //para evitar llamar muchas veces
-  For v In visEdi.seleccion  do  //explora todos
-    EliminarObjGrafico(v);
-  OnObjetosElim := tmp;  //restaura
-  if OnObjetosElim<>nil then OnObjetosElim;  //llama evento
-  visEdi.Refrescar;
-end;
 function TfraVisorGraf.GetxDes: integer;
 begin
   Result := visEdi.v2d.x_des;

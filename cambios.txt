@@ -4,6 +4,13 @@ Se mejora la estructura de la clase TVisGraf3D, para que permita la ejecución de
 Se continúa reordenando la clase TVisGraf3D. 
 Se implementa el procesamiento simple del comando LINE.
 
+Pendientes:Terminar de implementar el comando RECTANGLE, que implica crear una polilínea.
+Hay que revisar para ver cual es la mejor estructura a la clase TobjGrafDXF.
+Faltaría implementar el mecanismo de "Redo", "Undo".
+Ver como es la mejor forma de estructurar los objetos a dibujar, ya que actualmente solo 
+se tiene una clase útil (TObjGrafDXF) que deriva de TObjjGraf.
+
+
 Titocad 0.2.4
 =============
 Se reescriben las rutinas del visor TVisGraf3D, creando procedimientos por cada estado

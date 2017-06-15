@@ -3,8 +3,8 @@ unit FormPrincipal;
 interface
 uses
   Classes, SysUtils, Forms, Controls, Graphics, ExtCtrls, ActnList, Menus,
-  StdCtrls, ComCtrls, LCLProc, LCLType, Buttons, SynEdit, MisUtils, FormConfig,
-  FrameCfgGeneral, FrameCfgVista, CadDefinitions, frameVisorGraf, FormProject,
+  StdCtrls, ComCtrls, LCLProc, LCLType, Buttons, MisUtils, FormConfig,
+  FrameCfgGeneral, CadDefinitions, frameVisorGraf, FormProject,
   Globales, FrameExplorProyectos, FormControlVista, FormVistaProp,
   VisGraf3D;
 const
@@ -109,6 +109,7 @@ type
     procedure acPagAgrLinExecute(Sender: TObject);
     procedure acPagElimExecute(Sender: TObject);
     procedure acProAgrPagExecute(Sender: TObject);
+    procedure acProInsRectanExecute(Sender: TObject);
     procedure acProPropiedExecute(Sender: TObject);
     procedure acVerConVistaExecute(Sender: TObject);
     procedure acVerVisSupExecute(Sender: TObject);
@@ -436,8 +437,8 @@ var
 begin
   if curProject = nil then exit;
   if key = VK_RETURN then begin
-    lin := edit1.Text;
-    if trim(lin) = '' then exit;
+    lin := trim(edit1.Text);
+    if lin = '' then exit;
     lin := UpCase(lin);  //Convierte a mayúscula
     //Comando introducido.
     curProject.ActivePage.vista.ExecuteCommand(lin);
@@ -446,7 +447,6 @@ begin
     curProject.ActivePage.vista.ExecuteCommand('CANCEL');
   end;
 end;
-
 procedure TfrmPrincipal.curProjectActivePagevistaSendMessage(msg: string);
 {Ha llegado un mensaje del proyecto}
 begin
@@ -534,25 +534,26 @@ begin
 end;
 procedure TfrmPrincipal.acPagAgrLinExecute(Sender: TObject);  //Agrega línea
 var
-  p2, p1: TPoint3;
   pag: TCadPagina;
 begin
   if curProject=nil then exit;
   {Se verifica si la acción viene del explorador de proyecto, porque en ese caso, para
   darle la posibilidad de tomar acciones, sobre páginas no activas}
-  if ComponentFromAction(Sender) = PopupPagina then begin
-    pag := ExpProyPag;
-//    debugln('Del explorador.')
-  end else begin
-    pag := curProject.ActivePage;
-//    debugln('De otro lado');
-  end;
-  acPagAgrLin.Checked:=true;
-  p1.x:=0; p1.y:=0  ; p1.z := 100;
-  p2.x:=50; p2.y:=100; p2.z := 100;
-
-  pag.AddLine(p1, p2);
-  pag.vista.visEdi.Refrescar;
+  if ComponentFromAction(Sender) = PopupPagina then pag := ExpProyPag
+  else pag := curProject.ActivePage;
+  pag.vista.ExecuteCommand('LINE');
+  Refrescar;
+end;
+procedure TfrmPrincipal.acProInsRectanExecute(Sender: TObject);
+var
+  pag: TCadPagina;
+begin
+  if curProject=nil then exit;
+  {Se verifica si la acción viene del explorador de proyecto, porque en ese caso, para
+  darle la posibilidad de tomar acciones, sobre páginas no activas}
+  if ComponentFromAction(Sender) = PopupPagina then pag := ExpProyPag
+  else pag := curProject.ActivePage;
+  pag.vista.ExecuteCommand('RECTANGLE');
   Refrescar;
 end;
 procedure TfrmPrincipal.acPagElimExecute(Sender: TObject);

@@ -316,6 +316,7 @@ object frmPrincipal: TfrmPrincipal
       Category = 'Pro'
       Caption = 'acProInsRectan'
       ImageIndex = 33
+      OnExecute = acProInsRectanExecute
     end
     object acProPropied: TAction
       Category = 'Pro'
