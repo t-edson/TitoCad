@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
   <ProjectOptions>
-    <Version Value="9"/>
+    <Version Value="10"/>
     <PathDelim Value="\"/>
     <General>
       <SessionStorage Value="InProjectDir"/>
@@ -13,9 +13,6 @@
     <i18n>
       <EnableI18N LFM="False"/>
     </i18n>
-    <VersionInfo>
-      <StringTable ProductVersion=""/>
-    </VersionInfo>
     <BuildModes Count="2">
       <Item1 Name="Debug" Default="True"/>
       <Item2 Name="Release">
@@ -170,7 +167,7 @@
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
-      <OtherUnitFiles Value="..\..\_Librerias\MisUtils 0.5;..\..\_Librerias\SynFacilUtils 0.9;..\..\_Librerias\MiConfig 0.3b;..\..\_Librerias\MotGraf-0.2;..\..\_Librerias\UtilsGrilla 0.4;ConfigFrames"/>
+      <OtherUnitFiles Value="..\..\_Librerias\MisUtils-0.6;..\..\_Librerias\SynFacilUtils-1.2;..\..\_Librerias\MiConfig-0.4;..\..\_Librerias\MotGraf-0.2;..\..\_Librerias\UtilsGrilla 0.7;ConfigFrames"/>
       <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
     <Parsing>

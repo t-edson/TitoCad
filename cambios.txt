@@ -1,3 +1,8 @@
+Titocad 0.2.6
+=============
+Se actualizan las librerías a versiones más recientes.
+Se actualiza el proyecto para compilarse con Lazarus 1.8.
+
 Titocad 0.2.5
 =============
 Se mejora la estructura de la clase TVisGraf3D, para que permita la ejecución de comandos.

@@ -2,9 +2,9 @@
 <CONFIG>
   <ProjectSession>
     <PathDelim Value="\"/>
-    <Version Value="9"/>
+    <Version Value="10"/>
     <BuildModes Active="Debug"/>
-    <Units Count="40">
+    <Units Count="41">
       <Unit0>
         <Filename Value="TitoCad.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -63,8 +63,7 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Frame"/>
         <EditorIndex Value="-1"/>
-        <TopLine Value="7"/>
-        <CursorPos X="21" Y="10"/>
+        <CursorPos X="24" Y="18"/>
         <UsageCount Value="205"/>
       </Unit5>
       <Unit6>
@@ -101,7 +100,6 @@
       <Unit9>
         <Filename Value="CadDefinitions.pas"/>
         <IsPartOfProject Value="True"/>
-        <TopLine Value="103"/>
         <CursorPos Y="111"/>
         <UsageCount Value="200"/>
         <Loaded Value="True"/>
@@ -112,12 +110,9 @@
         <ComponentName Value="frmProject"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
-        <IsVisibleTab Value="True"/>
-        <EditorIndex Value="3"/>
-        <CursorPos X="28" Y="11"/>
+        <EditorIndex Value="-1"/>
+        <CursorPos X="20" Y="15"/>
         <UsageCount Value="200"/>
-        <Loaded Value="True"/>
-        <LoadedDesigner Value="True"/>
       </Unit10>
       <Unit11>
         <Filename Value="Globales.pas"/>
@@ -137,20 +132,20 @@
         <TopLine Value="49"/>
         <CursorPos X="14" Y="73"/>
         <FoldState Value=" TL0061 T8iA23 TMlg2104]H3iX059211]M0iTQ2352 T6j9010"/>
-        <UsageCount Value="176"/>
+        <UsageCount Value="181"/>
       </Unit12>
       <Unit13>
         <Filename Value="ObjGraficos.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="1"/>
-        <WindowIndex Value="1"/>
-        <TopLine Value="53"/>
-        <CursorPos X="15" Y="70"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="5"/>
+        <CursorPos X="36" Y="28"/>
         <ExtraEditorCount Value="1"/>
         <ExtraEditor1>
-          <EditorIndex Value="5"/>
-          <TopLine Value="124"/>
-          <CursorPos X="12" Y="124"/>
+          <EditorIndex Value="1"/>
+          <WindowIndex Value="1"/>
+          <TopLine Value="53"/>
+          <CursorPos X="15" Y="70"/>
         </ExtraEditor1>
         <UsageCount Value="200"/>
         <Loaded Value="True"/>
@@ -159,7 +154,7 @@
         <Filename Value="DefObjGraf.pas"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="4"/>
-        <TopLine Value="514"/>
+        <TopLine Value="23"/>
         <CursorPos X="6" Y="524"/>
         <ExtraEditorCount Value="1"/>
         <ExtraEditor1>
@@ -178,7 +173,7 @@
         <EditorIndex Value="-1"/>
         <TopLine Value="27"/>
         <CursorPos X="16" Y="49"/>
-        <UsageCount Value="147"/>
+        <UsageCount Value="152"/>
       </Unit15>
       <Unit16>
         <Filename Value="MotGraf3d.pas"/>
@@ -271,7 +266,6 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Frame"/>
         <EditorIndex Value="1"/>
-        <TopLine Value="48"/>
         <CursorPos X="15" Y="73"/>
         <UsageCount Value="100"/>
         <Loaded Value="True"/>
@@ -297,8 +291,7 @@
       <Unit30>
         <Filename Value="VisGraf3D.pas"/>
         <EditorIndex Value="2"/>
-        <TopLine Value="528"/>
-        <CursorPos X="75" Y="675"/>
+        <CursorPos X="39" Y="1445"/>
         <ExtraEditorCount Value="1"/>
         <ExtraEditor1>
           <EditorIndex Value="-1"/>
@@ -351,9 +344,11 @@
       </Unit34>
       <Unit35>
         <Filename Value="..\..\_Librerias\MotGraf-0.2\MotGraf3d.pas"/>
-        <EditorIndex Value="-1"/>
-        <CursorPos Y="20"/>
-        <UsageCount Value="24"/>
+        <EditorIndex Value="3"/>
+        <TopLine Value="30"/>
+        <CursorPos X="5" Y="27"/>
+        <UsageCount Value="26"/>
+        <Loaded Value="True"/>
       </Unit35>
       <Unit36>
         <Filename Value="C:\lazarus\lcl\menus.pp"/>
@@ -387,125 +382,128 @@
         <CursorPos Y="1270"/>
         <UsageCount Value="9"/>
       </Unit39>
+      <Unit40>
+        <Filename Value="..\..\_Librerias\MisUtils-0.6\MisUtils.pas"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="419"/>
+        <CursorPos X="44" Y="435"/>
+        <UsageCount Value="10"/>
+      </Unit40>
     </Units>
-    <JumpHistory Count="30" HistoryIndex="29">
+    <JumpHistory Count="29" HistoryIndex="27">
       <Position1>
-        <Filename Value="VisGraf3D.pas"/>
-        <Caret Line="1187" TopLine="1107"/>
+        <Filename Value="ObjGraficos.pas"/>
+        <Caret Line="153" Column="11" TopLine="124"/>
       </Position1>
       <Position2>
-        <Filename Value="VisGraf3D.pas"/>
-        <Caret Line="1229" Column="8" TopLine="1170"/>
+        <Filename Value="ObjGraficos.pas"/>
+        <Caret Line="143" Column="5" TopLine="123"/>
       </Position2>
       <Position3>
-        <Filename Value="VisGraf3D.pas"/>
-        <Caret Line="1231" Column="21" TopLine="1170"/>
+        <Filename Value="ObjGraficos.pas"/>
+        <Caret Line="108" Column="4" TopLine="97"/>
       </Position3>
       <Position4>
-        <Filename Value="VisGraf3D.pas"/>
-        <Caret Line="1221" TopLine="1170"/>
+        <Filename Value="ObjGraficos.pas"/>
+        <Caret Line="109" Column="5" TopLine="97"/>
       </Position4>
       <Position5>
-        <Filename Value="VisGraf3D.pas"/>
-        <Caret Line="1229" TopLine="1170"/>
+        <Filename Value="ObjGraficos.pas"/>
       </Position5>
       <Position6>
         <Filename Value="ObjGraficos.pas"/>
-        <Caret Line="146" Column="34" TopLine="118"/>
+        <Caret Line="56" Column="5" TopLine="28"/>
       </Position6>
       <Position7>
         <Filename Value="ObjGraficos.pas"/>
-        <Caret Line="153" Column="11" TopLine="124"/>
+        <Caret Line="108" Column="5" TopLine="80"/>
       </Position7>
       <Position8>
         <Filename Value="ObjGraficos.pas"/>
-        <Caret Line="143" Column="5" TopLine="123"/>
+        <Caret Line="142" Column="6" TopLine="120"/>
       </Position8>
       <Position9>
         <Filename Value="ObjGraficos.pas"/>
-        <Caret Line="108" Column="4" TopLine="97"/>
       </Position9>
       <Position10>
         <Filename Value="ObjGraficos.pas"/>
-        <Caret Line="109" Column="5" TopLine="97"/>
+        <Caret Line="35" Column="6" TopLine="7"/>
       </Position10>
       <Position11>
         <Filename Value="ObjGraficos.pas"/>
+        <Caret Line="141" Column="8" TopLine="113"/>
       </Position11>
       <Position12>
         <Filename Value="ObjGraficos.pas"/>
-        <Caret Line="56" Column="5" TopLine="28"/>
+        <Caret Line="142" Column="6" TopLine="114"/>
       </Position12>
       <Position13>
-        <Filename Value="ObjGraficos.pas"/>
-        <Caret Line="108" Column="5" TopLine="80"/>
+        <Filename Value="VisGraf3D.pas"/>
+        <Caret Line="1209" Column="31" TopLine="1188"/>
       </Position13>
       <Position14>
-        <Filename Value="ObjGraficos.pas"/>
-        <Caret Line="142" Column="6" TopLine="120"/>
+        <Filename Value="VisGraf3D.pas"/>
+        <Caret Line="1405" Column="3" TopLine="1392"/>
       </Position14>
       <Position15>
-        <Filename Value="ObjGraficos.pas"/>
+        <Filename Value="VisGraf3D.pas"/>
+        <Caret Line="1399" Column="11" TopLine="1392"/>
       </Position15>
       <Position16>
-        <Filename Value="ObjGraficos.pas"/>
-        <Caret Line="35" Column="6" TopLine="7"/>
+        <Filename Value="VisGraf3D.pas"/>
+        <Caret Line="1400" Column="10" TopLine="1392"/>
       </Position16>
       <Position17>
-        <Filename Value="ObjGraficos.pas"/>
-        <Caret Line="141" Column="8" TopLine="113"/>
+        <Filename Value="VisGraf3D.pas"/>
+        <Caret Line="1277" Column="17" TopLine="1268"/>
       </Position17>
       <Position18>
-        <Filename Value="ObjGraficos.pas"/>
-        <Caret Line="142" Column="6" TopLine="114"/>
+        <Filename Value="VisGraf3D.pas"/>
+        <Caret Line="73" TopLine="72"/>
       </Position18>
       <Position19>
         <Filename Value="VisGraf3D.pas"/>
-        <Caret Line="1209" Column="31" TopLine="1188"/>
+        <Caret Line="16" Column="19"/>
       </Position19>
       <Position20>
         <Filename Value="VisGraf3D.pas"/>
-        <Caret Line="1405" Column="3" TopLine="1392"/>
       </Position20>
       <Position21>
-        <Filename Value="VisGraf3D.pas"/>
-        <Caret Line="1399" Column="11" TopLine="1392"/>
+        <Filename Value="FormPrincipal.pas"/>
+        <Caret Line="554" Column="70" TopLine="500"/>
       </Position21>
       <Position22>
         <Filename Value="VisGraf3D.pas"/>
-        <Caret Line="1400" Column="10" TopLine="1392"/>
+        <Caret Line="48" Column="4" TopLine="33"/>
       </Position22>
       <Position23>
-        <Filename Value="VisGraf3D.pas"/>
-        <Caret Line="1277" Column="17" TopLine="1268"/>
+        <Filename Value="..\..\_Librerias\MotGraf-0.2\MotGraf3d.pas"/>
+        <Caret Line="26" Column="20"/>
       </Position23>
       <Position24>
-        <Filename Value="VisGraf3D.pas"/>
-        <Caret Line="73" TopLine="72"/>
+        <Filename Value="ObjGraficos.pas"/>
+        <Caret Line="195" Column="16" TopLine="186"/>
       </Position24>
       <Position25>
-        <Filename Value="VisGraf3D.pas"/>
-        <Caret Line="16" Column="19"/>
+        <Filename Value="ObjGraficos.pas"/>
+        <Caret Line="69" Column="12" TopLine="54"/>
       </Position25>
       <Position26>
-        <Filename Value="VisGraf3D.pas"/>
+        <Filename Value="ObjGraficos.pas"/>
+        <Caret Line="199" Column="3" TopLine="190"/>
       </Position26>
       <Position27>
-        <Filename Value="FormPrincipal.pas"/>
-        <Caret Line="554" Column="70" TopLine="500"/>
+        <Filename Value="ObjGraficos.pas"/>
+        <Caret Line="69" Column="12" TopLine="54"/>
       </Position27>
       <Position28>
-        <Filename Value="FormProject.pas"/>
-        <Caret Line="65" Column="10" TopLine="48"/>
+        <Filename Value="ObjGraficos.pas"/>
+        <Caret Line="205" Column="9" TopLine="188"/>
       </Position28>
       <Position29>
-        <Filename Value="FormProject.pas"/>
-        <Caret Line="8" Column="5"/>
+        <Filename Value="..\..\_Librerias\MotGraf-0.2\MotGraf3d.pas"/>
+        <Caret Line="27" Column="5" TopLine="11"/>
       </Position29>
-      <Position30>
-        <Filename Value="FormProject.pas"/>
-        <Caret Line="10" Column="29"/>
-      </Position30>
     </JumpHistory>
   </ProjectSession>
 </CONFIG>
