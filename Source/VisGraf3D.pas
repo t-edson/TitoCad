@@ -938,7 +938,7 @@ begin
 end;
 procedure TVisGraf3D.proc_NORMAL(EventTyp: TVisEventTyp; Button: TMouseButton;
   Shift: TShiftState; xp, yp: Integer; txt: string);
-{Procesa eventos, en el esatdo NORMAL. Este es el estado estable o pro defecto.
+{Procesa eventos, en el estado NORMAL. Este es el estado estable o por defecto.
 Desde aquí se pasan a todos los demás estados.}
 var
   o: TObjGraf;
@@ -1046,6 +1046,12 @@ begin
       end else if UpCase(txt) = 'CANCEL' then begin
         //Cancela todos los comandos activos
         RestoreState;
+      end else if UpCase(txt) = 'SELECT ALL' then begin
+        SeleccionarTodos;
+        Refrescar;
+      end else if UpCase(txt) = 'ERASE' then begin
+        ElimSeleccion;
+        Refrescar;
       end else begin
         if OnSendMessage<>nil then OnSendMessage('Comando desconocido: "' + txt + '"');
       end;
@@ -1379,7 +1385,7 @@ begin
 end;
 //Inicialización
 procedure TVisGraf3D.RestoreState(msg: string='');
-{Resatura el estado del Visor, poniéndolo en estado EP_NORMAL.
+{Restaura el estado del Visor, poniéndolo en estado EP_NORMAL.
 Si se indica "msg", se genera el evento OnSendMessage().}
 begin
   State := EP_NORMAL;
