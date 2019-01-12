@@ -1,4 +1,4 @@
-TitoCad 0.2.6
+TitoCad 0.2.7
 =============
 
 TitoCad es un programa desarrollado en Lazarus, con las funcionalidades mínimas de una herramienta CAD de dibujo en 3D.
@@ -17,7 +17,7 @@ Los Requerimientos planteados para este proyecto son:
 3.	Sin dependencias de frameworks o máquinas virtuales
 4.	Multiplataforma (Windos, Linux, Mac).
 5.	Soporte para internacionalización. 
-6.	Inetrfaz amigable. 
+6.	Interfaz amigable. 
 7.	Diseño en 2D y 3D.
 8.	Soporte para diseño por comandos y mouse.
 9.	Soporte para importar/exportar DXF.

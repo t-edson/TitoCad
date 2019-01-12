@@ -6,7 +6,7 @@ uses
   StdCtrls, ComCtrls, LCLProc, LCLType, Buttons, MisUtils, FormConfig,
   FrameCfgGeneral, CadDefinitions, frameVisorGraf, FormProject,
   Globales, FrameExplorProyectos, FormControlVista, FormVistaProp,
-  VisGraf3D;
+  VisGraf3D, FrameComPanel;
 const
   NUM_CUAD = 20;
   ZOOM_INI = 12;
@@ -36,10 +36,6 @@ type
     acVisPropied: TAction;
     acVerVisSup: TAction;
     acVerConVista: TAction;
-    BitBtn1: TBitBtn;
-    Edit1: TEdit;
-    Label1: TLabel;
-    Memo1: TMemo;
     MenuItem10: TMenuItem;
     MenuItem11: TMenuItem;
     MenuItem12: TMenuItem;
@@ -78,8 +74,6 @@ type
     MenuItem8: TMenuItem;
     MenuItem9: TMenuItem;
     PageControl1: TPageControl;
-    Panel1: TPanel;
-    panCommand: TPanel;
     PopupVista: TPopupMenu;
     PopupPagina: TPopupMenu;
     PopupProject: TPopupMenu;
@@ -109,12 +103,12 @@ type
     procedure acPagAgrLinExecute(Sender: TObject);
     procedure acPagElimExecute(Sender: TObject);
     procedure acProAgrPagExecute(Sender: TObject);
+    procedure acProInsPolylinExecute(Sender: TObject);
     procedure acProInsRectanExecute(Sender: TObject);
     procedure acProPropiedExecute(Sender: TObject);
     procedure acVerConVistaExecute(Sender: TObject);
     procedure acVerVisSupExecute(Sender: TObject);
     procedure acVisPropiedExecute(Sender: TObject);
-    procedure Edit1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
@@ -125,8 +119,10 @@ type
     curProject  : TCadProyecto;
     ExpProyPag  : TCadPagina;     //página seleccionada en el explorador de proyecto
     ExpProyVis  : TfraVisorGraf;  //vista seleccionada en el explorador de proyecto
+    panCommand  : TfraComPanel;
     procedure ConfigPropertiesChanged;
     procedure curProjectActivePagevistaSendMessage(msg: string);
+    procedure curProjectActivePagevistaSendPrompt(msg: string);
     procedure curProject_Modific;
     procedure curProject_ChangeState(VisState: TVisStateTyp);
     procedure curProject_MouseMoveVirt(Shift: TShiftState; xp, yp: Integer; xv,
@@ -137,6 +133,9 @@ type
     procedure fraExplorProy_ClickDerVista(vis: TfraVisorGraf);
     procedure curProject_ChangeView(vista: TfraVisorGraf);
     function MensajeGuardarCambios: integer;
+    procedure panCommandComKeyDown(Sender: TObject; var Key: Word;
+      Shift: TShiftState);
+    procedure panCommandComReturn(txtPrompt, txtAnswer: string);
     procedure RefrescarEntorno;
     procedure Refrescar;
     procedure RefrescarPanelVista;
@@ -183,7 +182,15 @@ begin
   fraExplorProy.Align:=alLeft;
   Splitter2.Align:=alLeft;
   fraExplorProy.Visible:=true;
+
+  //Panel de comandos
+  panCommand  := TfraComPanel.Create(self);
+  panCommand.Parent := self;
   panCommand.Align:=alBottom;
+  panCommand.ErrorString := 'Error:';  //Para que pinte de rojo
+  panCommand.OnComKeyDown := @panCommandComKeyDown;
+  panCommand.OnComReturn := @panCommandComReturn;
+
   PageControl1.Align:=alClient;
 end;
 procedure TfrmPrincipal.FormShow(Sender: TObject);
@@ -212,12 +219,11 @@ begin
   if curProject = nil then exit;
   //Envía todos los comandos al cuadro de comandos
   if TabSheet1.Focused then begin
-    edit1.SetFocus;  //pasa el enfoque
+    panCommand.SetFocus;
   end else if PageControl1.Focused then begin
-    edit1.SetFocus;  //pasa el enfoque
+    panCommand.SetFocus;
   end;
 end;
-
 procedure TfrmPrincipal.ConfigPropertiesChanged;
 //Se cambian las propiedades de la configuración
 begin
@@ -430,19 +436,21 @@ begin
     exit(compSource)
   end;
 end;
-procedure TfrmPrincipal.Edit1KeyDown(Sender: TObject; var Key: Word;
+procedure TfrmPrincipal.panCommandComReturn(txtPrompt, txtAnswer: string);
+begin
+  if curProject = nil then exit;
+//if txtAnswer = '' then exit;
+  txtAnswer := UpCase(txtAnswer);  //Convierte a mayúscula
+  //Comando introducido.
+  curProject.ActivePage.vista.ExecuteCommand(txtAnswer);
+end;
+procedure TfrmPrincipal.panCommandComKeyDown(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 var
   lin: String;
 begin
   if curProject = nil then exit;
-  if key = VK_RETURN then begin
-    lin := trim(edit1.Text);
-    if lin = '' then exit;
-    lin := UpCase(lin);  //Convierte a mayúscula
-    //Comando introducido.
-    curProject.ActivePage.vista.ExecuteCommand(lin);
-  end else if key = VK_ESCAPE then begin
+  if key = VK_ESCAPE then begin
     //Covierte tecla en comando
     curProject.ActivePage.vista.ExecuteCommand('CANCEL');
   end;
@@ -450,9 +458,11 @@ end;
 procedure TfrmPrincipal.curProjectActivePagevistaSendMessage(msg: string);
 {Ha llegado un mensaje del proyecto}
 begin
-  Memo1.Lines.Add(Edit1.Text);
-  Label1.Caption:= msg;
-  Edit1.Text := '';
+  panCommand.AddLine(msg);
+end;
+procedure TfrmPrincipal.curProjectActivePagevistaSendPrompt(msg: string);
+begin
+  panCommand.AddPrompt(msg);
 end;
 ///////////////////////////// Acciones ///////////////////////////////
 procedure TfrmPrincipal.acArcNueProExecute(Sender: TObject);
@@ -476,7 +486,8 @@ begin
   curProject.OnChangeActivePage:=@curProject_ChangeActivePage;
   curProject.OnMouseMoveVirt   :=@curProject_MouseMoveVirt;
   curProject.OnChangeState     :=@curProject_ChangeState;
-  curProject.ActivePage.vista.OnSendMessage:=@curProjectActivePagevistaSendMessage;
+  curProject.ActivePage.vista.OnSendMessage:= @curProjectActivePagevistaSendMessage;
+  curProject.ActivePage.vista.OnSendPrompt := @curProjectActivePagevistaSendPrompt;
   curProject_ChangeActivePage;  //para refrescar en su visor
   curProject.ActivePage.vista.InicVista;  //inicia los ejes
   //curProject.Modific:=true;
@@ -511,7 +522,7 @@ begin
   if curProject=nil then exit;
   curProject.ActivePage.vista.Alfa:=0;
   curProject.ActivePage.vista.Fi:=0;
-  curProject.ActivePage.vista.visEdi.Refrescar;
+  curProject.ActivePage.vista.visEdi.Refresh;
 end;
 procedure TfrmPrincipal.acVisPropiedExecute(Sender: TObject);
 begin
@@ -521,7 +532,11 @@ procedure TfrmPrincipal.acProAgrPagExecute(Sender: TObject);
 begin
   if curProject = nil then exit;  //no hay proyecto abierto
   curProject.AddPage;
-  Refrescar;
+  Refresh;
+end;
+procedure TfrmPrincipal.acProInsPolylinExecute(Sender: TObject);
+begin
+
 end;
 procedure TfrmPrincipal.acProPropiedExecute(Sender: TObject);
 begin

@@ -46,7 +46,7 @@ begin
   vista.visEdi.LonEjesCoor  := spnLongEje.Value;
   vista.visEdi.VerPuntoGiro := chkVerPtoGiro.Checked;
   vista.visEdi.VerCuadric   := chkVerCuadric.Checked;
-  vista.visEdi.Refrescar;
+  vista.visEdi.Refresh;
 end;
 
 procedure TfrmVistaProp.Exec(vista0: TfraVisorGraf);

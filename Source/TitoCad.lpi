@@ -64,7 +64,7 @@
         <PackageName Value="LCL"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="16">
+    <Units Count="17">
       <Unit0>
         <Filename Value="TitoCad.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -157,6 +157,13 @@
         <ComponentName Value="frmVistaProp"/>
         <ResourceBaseClass Value="Form"/>
       </Unit15>
+      <Unit16>
+        <Filename Value="FrameComPanel.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="fraComPanel"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Frame"/>
+      </Unit16>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

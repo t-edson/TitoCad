@@ -147,9 +147,9 @@ end;
 procedure TObjGrafDXF.ReubicElemen;
 begin
   //Ubica puntos de control
-  pc0.Ubicar(P0);
-  pc1.Ubicar(P1);
-  pcM.Ubicar((P0.x + P1.x)/2, (P0.y + P1.y)/2, (P0.z + P1.z)/2 );
+  pc0.Locate(P0);
+  pc1.Locate(P1);
+  pcM.Locate((P0.x + P1.x)/2, (P0.y + P1.y)/2, (P0.z + P1.z)/2 );
 end;
 procedure TObjGrafDXF.Dibujar;
 var

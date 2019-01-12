@@ -9,7 +9,7 @@ Para trabajar debe asociarse con un control PaintBox (donde aprecerán los objet
 gráficos) y una lista de objetos de tipo TlistObjGraf, definidos en la unidad
 ogDefObjGraf.
 Está unidad está basada en la librería ogEditGraf, en donde sería equivalente a
-la unidad ogMotEdicion, con la diferecnia de que aquí, la clase principal, no incluye
+la unidad ogMotEdicion, con la diferencia de que aquí, la clase principal, no incluye
 al contenedor de objetos sino solo una referecncia, y que el enfoque aquí es al manejo
 de estados antes que de eventos.
 La idea es que esta clase provea, de una capa de mayor nivel sobre el motor gráfico
@@ -44,8 +44,8 @@ unit VisGraf3D;
 {$mode objfpc}{$H+}
 INTERFACE
 uses
-  Classes, Controls, ExtCtrls, Graphics, LCLProc, LCLType, fgl,
-  MotGraf3D, DefObjGraf, ObjGraficos;
+  Classes, Controls, ExtCtrls, Graphics, LCLProc, LCLType, fgl, sysutils,
+  MotGraf3d, DefObjGraf, ObjGraficos;
 const
   CUR_DEFEC = crDefault;          //cursor por defecto
 
@@ -89,6 +89,7 @@ type
   { TVisGraf3D }
   TVisGraf3D = class
   private
+    step  : integer;   //Paso del comando
     FState: TVisStateTyp;
     procedure AgregarObjGrafico(og: TObjGraf; AutoPos: boolean=true);
     procedure EliminarObjGrafico(obj: TObjGraf);  //elimina un objeto grafico
@@ -124,23 +125,24 @@ type
     OnModif     : procedure of object;  //Este visor indica los cambios con este evento
     OnChangeState: TEvChangeState;      //Cambia el estado del Visor
     OnSendMessage: TEvSendMessage;      //Envía un mensaje. Usado para respuesta a comandos
+    onSendPrompt : TEvSendMessage;      //Envía una petición de comando.
   public
-    xvPtr       : Single;   //coordenadas cirtuales del puntero
-    yvPtr       : Single;   //coordenadas cirtuales del puntero
-    zvPtr       : Single;   //coordenadas cirtuales del puntero
-    objetos     : TlistObjGraf; //referencia a la lisat de objetos
+    xvPtr       : Single;    //Coordenadas cirtuales del puntero
+    yvPtr       : Single;    //Coordenadas cirtuales del puntero
+    zvPtr       : Single;    //Coordenadas cirtuales del puntero
+    objetos     : TlistObjGraf; //Referencia a la lista de objetos
     seleccion   : TlistObjGraf;
-    v2d         : TMotGraf;    //salida gráfica
-    incWheel    : Single;      //Incremento de ámgulo con la rueda del mouse
-    VerEjesCoor : boolean;     //Para mostrar los ejec coordenados.
-    LonEjesCoor : integer;     //Longitud de ejes coordenados
-    VerPuntoGiro: boolean;     //Para mostrar el punto de giro.
-    VerCuadric  : boolean;     //Para mostrar la cuadrícula.
+    v2d         : TMotGraf;  //Salida gráfica
+    incWheel    : Single;    //Incremento de ámgulo con la rueda del mouse
+    VerEjesCoor : boolean;   //Para mostrar los ejec coordenados.
+    LonEjesCoor : integer;   //Longitud de ejes coordenados
+    VerPuntoGiro: boolean;   //Para mostrar el punto de giro.
+    VerCuadric  : boolean;   //Para mostrar la cuadrícula.
     function Seleccionado: TObjGraf;
-    function ObjPorNombre(nom: string): TObjGraf;
-    procedure Refrescar;
-    procedure SeleccionarTodos;
-    procedure DeseleccionarTodos();
+    function ObjByName(nom: string): TObjGraf;
+    procedure Refresh;
+    procedure SelectAll;
+    procedure UnselectAll();
   protected
     x1Sel    : integer;
     y1Sel    : integer;
@@ -157,28 +159,28 @@ type
     y_cam_a: Single;
     procedure AmpliarClick(factor: real=FACTOR_AMPLIA_ZOOM; xr: integer=0;
       yr: integer=0);
-    function AnteriorVisible(c: TObjGraf): TObjGraf;
     procedure DibujRecSeleccion;
 
     function enRecSeleccion(X, Y: Single): Boolean;
     procedure InicRecSeleccion(X, Y: Integer);
-    procedure moverAbajo(desp: Double=DESPLAZ_MENOR);
-    procedure moverArriba(desp: Double=DESPLAZ_MENOR);
-    procedure moverDerecha(desp: Double=DESPLAZ_MENOR);
-    procedure moverIzquierda(desp: Double=DESPLAZ_MENOR);
-    procedure Desplazar(dx, dy: integer);
-    function NumeroVisibles: Integer;
-    function PrimerVisible: TObjGraf;
+    procedure moveDown(desp: Double=DESPLAZ_MENOR);
+    procedure moveUp(desp: Double=DESPLAZ_MENOR);
+    procedure moveRigth(desp: Double=DESPLAZ_MENOR);
+    procedure moveLeft(desp: Double=DESPLAZ_MENOR);
+    procedure Scroll(dx, dy: integer);
+    function NumberVisibles: Integer;
+    function FirstVisible: TObjGraf;
+    function PreviousVisible(c: TObjGraf): TObjGraf;
+    function NextVisible(c: TObjGraf): TObjGraf;
+    function LastVisible: TObjGraf;
     function RecSeleccionNulo: Boolean;
     procedure ReducirClick(factor: Real=FACTOR_AMPLIA_ZOOM; x_zoom: Real=0;
       y_zoom: Real=0);
     function SeleccionaAlguno(xp, yp: Integer): TObjGraf;
-    procedure SeleccionarAnterior;
-    procedure SeleccionarSiguiente;
-    function SiguienteVisible(c: TObjGraf): TObjGraf;
-    function UltimoVisible: TObjGraf;
+    procedure SelectPrevious;
+    procedure SelectNext;
     function VerificarMovimientoRaton(X, Y: Integer): TObjGraf;
-    procedure VerificarParaMover(xp, yp: Integer);
+    procedure VerifyForMove(xp, yp: Integer);
   public  //Se hace público porque se necesita acceder desde fuera
     procedure ObjGraf_Select(obj: TObjGraf);     //Respuesta a Evento
     procedure ObjGraf_Unselec(obj: TObjGraf);    //Respuesta a Evento
@@ -213,7 +215,7 @@ type
     procedure proc_RAT_ZOOM(EventTyp: TVisEventTyp; Button: TMouseButton;
                             Shift: TShiftState; xp, yp: Integer; txt: string);
   public //Inicialización
-    procedure RestoreState(msg: string='');
+    procedure RestoreState(prompt: string='');
     constructor Create(PB0: TPaintBox; objectList: TlistObjGraf);
     destructor Destroy; override;
   end;
@@ -261,14 +263,14 @@ begin
   zvPtr := 0;   //fijamos el plano de trabajo en z=0
   v2d.XYvirt(X,Y,zvPtr, xvPtr, yvPtr);  {actualiza puntero virtual.}
   if OnMouseMove<>nil then OnMouseMove(Sender, Shift, X, Y);
-  if ParaMover = True Then VerificarParaMover(X, Y);
+  if ParaMover = True Then VerifyForMove(X, Y);
   CallEventState(State, vmeMouseMove, mbExtra1, Shift, x, y, ''); //Procesa de acuerdo al estado
 end;
 procedure TVisGraf3D.PBox_Paint(Sender: TObject);
 var
   o:TObjGraf;
   x, y, xCuad1, xCuad2, yCuad1, yCuad2: Single;
-  nCuad, ix, distCub, paso: Integer;
+  nCuad, ix, distCub, wstep: Integer;
 begin
     v2d.Clear;
     If State = EP_SELECMULT Then DibujRecSeleccion;
@@ -277,38 +279,38 @@ begin
       v2d.SetPen(TColor($404040),1);
       if v2d.Zoom > 7 then begin
         distCub := 100;  //distancia cubierta (valor virtual)
-        paso := 10;      //ancho del paso (valor virtual)
+        wstep := 10;      //ancho del step (valor virtual)
       end else if v2d.Zoom > 3 then begin
         distCub := 200;  //distancia cubierta (valor virtual)
-        paso := 20;      //ancho del paso (valor virtual)
+        wstep := 20;      //ancho del step(valor virtual)
       end else if v2d.Zoom > 1 then begin
         distCub := 600;  //distancia cubierta (valor virtual)
-        paso := 50;      //ancho del paso (valor virtual)
+        wstep := 50;      //ancho del step(valor virtual)
       end else begin
         distCub := 1200;  //distancia cubierta (valor virtual)
-        paso := 100;      //ancho del paso (valor virtual)
+        wstep := 100;      //ancho del step(valor virtual)
       end;
-      nCuad := distCub div paso;
+      nCuad := distCub div wstep;
 
 //      xCuad1 := 0;
 //      xCuad2 := 1000;
-      xCuad1 := int((v2d.x_cam - distCub/2)/paso)*paso;
+      xCuad1 := int((v2d.x_cam - distCub/2)/wstep)*wstep;
       xCuad2 := xCuad1 + distCub;
 
 //      yCuad1 := 0;
 //      yCuad2 := 1000;
-      yCuad1 := int((v2d.y_cam - distCub/2)/paso)*paso;
+      yCuad1 := int((v2d.y_cam - distCub/2)/wstep)*wstep;
       yCuad2 := yCuad1 + distCub;
 
       x := xCuad1;
       for ix := 0 to nCuad do begin
         v2d.Line(x,yCuad1,0, x, yCuad2, 0);
-        x := x + paso;
+        x := x + wstep;
       end;
       y := yCuad1;
       for ix := 0 to nCuad do begin
         v2d.Line(xCuad1, y, 0, xCuad2, y, 0);
-        y := y + paso;
+        y := y + wstep;
       end;
     end;
     //Dibuja objetos
@@ -321,6 +323,7 @@ begin
       v2d.Line(0,0,0,100,0,0);
       v2d.Line(0,0,0,0,100,0);
       v2d.Line(0,0,0,0,0,100);
+      v2d.SetText(clWhite, 11);
       v2d.Texto(100,10,0,'x');
       v2d.Texto(0,100,0,'y');
     end;
@@ -357,7 +360,7 @@ begin
     if WheelDelta>0 then v2d.Zoom:=v2d.Zoom*1.2
     else v2d.Zoom:=v2d.Zoom/1.2;
   end;
-  Refrescar;
+  Refresh;
 end;
 procedure TVisGraf3D.PBox_DblClick(Sender: TObject);
 begin
@@ -380,8 +383,7 @@ begin
   //El único estado que debería tratar este comando, sería el estado NORMAL.
   CallEventState(State, vmeEjecComm, mbExtra1, [], 0, 0, command); //Procesa de acuerdo al estado
 end;
-
-procedure TVisGraf3D.Refrescar();  //   Optional s: TObjGraf = Nothing
+procedure TVisGraf3D.Refresh();  //   Optional s: TObjGraf = Nothing
 begin
   PBox.Invalidate;
 end;
@@ -411,7 +413,7 @@ begin
     End;
   end;
 End;
-procedure TVisGraf3D.VerificarParaMover(xp, yp: Integer);
+procedure TVisGraf3D.VerifyForMove(xp, yp: Integer);
 {Si se empieza el movimiento, selecciona primero algun elemento que
 pudiera estar debajo del puntero y actualiza "EstPuntero".
 Solo se debe ejecutar una vez al inicio del movimiento, para ello se
@@ -465,7 +467,7 @@ begin
             //Si ya había uno marcado, se actualiza el dibujo y la bandera
             ultMarcado.Marcado := False;  //se desmarca
             ultMarcado := NIL;
-            Refrescar;
+            Refresh;
         End;
       PBox.Cursor := CUR_DEFEC;   //restaura cursor
     end
@@ -474,7 +476,7 @@ begin
          //No había ninguno marcado
          ultMarcado := s;      //guarda
          s.Marcado := True;    //lo marca
-         Refrescar;            //y se dibuja
+         Refresh;            //y se dibuja
       end Else begin  //ya había uno marcado
            If ultMarcado = s Then  //es el mismo
                //no se hace nada
@@ -482,14 +484,14 @@ begin
                ultMarcado.Marcado := False;  //se desmarca
                ultMarcado := s ;   //actualiza
                s.Marcado := True;
-               Refrescar;          //y se dibuja
+               Refresh;          //y se dibuja
            End;
         End;
     End;
 
 End;
 //***********Funciones para administrar los elementos visibles y seleccion por teclado**********
-function TVisGraf3D.NumeroVisibles: Integer;
+function TVisGraf3D.NumberVisibles: Integer;
 //devuelve el número de objetos visibles
 var
   v: TObjGraf;
@@ -501,7 +503,7 @@ begin
   end;
   Result := tmp;
 end;
-function TVisGraf3D.PrimerVisible: TObjGraf;
+function TVisGraf3D.FirstVisible: TObjGraf;
  //devuelve el primer objeto visible
 var
   i: integer;
@@ -513,7 +515,7 @@ begin
     end;
   end;
 End;
-function TVisGraf3D.UltimoVisible: TObjGraf;
+function TVisGraf3D.LastVisible: TObjGraf;
  //devuelve el último objeto visible
 var
   i: Integer;
@@ -525,7 +527,7 @@ begin
     end;
   end;
 end;
-function TVisGraf3D.SiguienteVisible(c: TObjGraf): TObjGraf;
+function TVisGraf3D.NextVisible(c: TObjGraf): TObjGraf;
 //devuelve el siguiente objeto visible en el orden de creación
 var
   i: Integer;
@@ -538,14 +540,14 @@ begin
     repeat
       Inc(i);
       If i >= objetos.Count Then begin  //se ha llegado al final del conjunto
-        Result := PrimerVisible;
+        Result := FirstVisible;
         Exit;
       end;
     until objetos[i].visible;
     //selecciona el siguiente visible
     Result := objetos[i];
 end;
-function TVisGraf3D.AnteriorVisible(c: TObjGraf): TObjGraf;
+function TVisGraf3D.PreviousVisible(c: TObjGraf): TObjGraf;
 //devuelve el anterior objeto visible en el orden de creación
 var
   i: Integer;
@@ -558,50 +560,50 @@ begin
     repeat
       Dec(i);
       If i < 0 Then begin  //se ha llegado al inicio
-        Result := UltimoVisible;
+        Result := LastVisible;
         Exit;
       End;
     until objetos[i].visible;
     //selecciona el siguiente visible
     Result := objetos[i];
 End;
-procedure TVisGraf3D.SeleccionarSiguiente;
+procedure TVisGraf3D.SelectNext;
 //Selecciona el siguiente elemento visible en el orden de creación.
 //Si no hay ninguno seleccionado, selecciona el primero
 var
   s: TObjGraf;
 begin
-    if NumeroVisibles() = 0 Then exit;
+    if NumberVisibles() = 0 Then exit;
     if seleccion.Count = 1 Then begin  //hay uno seleccionado
         s := seleccion[0];   //toma el seleccionado
-        s := SiguienteVisible(s);
-        DeseleccionarTodos;
+        s := NextVisible(s);
+        UnselectAll;
         s.Selec;
     end else begin     //hay cero o más de uno seleccionado
-        s := PrimerVisible;  //selecciona el primero
-        DeseleccionarTodos;
+        s := FirstVisible;  //selecciona el primero
+        UnselectAll;
         s.Selec;
     end;
-    Refrescar;
+    Refresh;
 end;
-procedure TVisGraf3D.SeleccionarAnterior;
+procedure TVisGraf3D.SelectPrevious;
 //Selecciona el anterior elemento visible en el orden de creación.
 //Si no hay ninguno seleccionado, selecciona el ultimo
 var
   s: TObjGraf;
 begin
-    if NumeroVisibles() = 0 Then exit;
+    if NumberVisibles() = 0 Then exit;
     if seleccion.Count = 1 then begin     //hay uno seleccionado
         s := seleccion[0];    //toma el seleccionado
-        s := AnteriorVisible(s);
-        DeseleccionarTodos;
+        s := PreviousVisible(s);
+        UnselectAll;
         s.Selec;
     end else begin               //hay cero o más de uno seleccionado
-        s := UltimoVisible;   //selecciona el ultimo
-        DeseleccionarTodos;
+        s := LastVisible;   //selecciona el ultimo
+        UnselectAll;
         s.Selec;
     end;
-    Refrescar;
+    Refresh;
 end;
 //******************* Funciones de visualización **********************
 procedure TVisGraf3D.AmpliarClick(factor: real = FACTOR_AMPLIA_ZOOM;
@@ -619,22 +621,22 @@ begin
         v2d.FijarVentana(PBox.Width, PBox.Height,
                 x_zoom - anc_p / 2, x_zoom + anc_p / 2, y_zoom - alt_p / 2, y_zoom + alt_p / 2);
     End;
-    Refrescar;
+    Refresh;
 End;
 procedure TVisGraf3D.ReducirClick(factor: Real = FACTOR_AMPLIA_ZOOM;
                         x_zoom: Real = 0; y_zoom: Real = 0);
 begin
     If v2d.zoom > ZOOM_MIN_CONSULT Then
         v2d.zoom := v2d.zoom / factor;
-    Refrescar;
+    Refresh;
 End;
 /////////////////////////  Funciones de selección /////////////////////////////
-procedure TVisGraf3D.SeleccionarTodos;
+procedure TVisGraf3D.SelectAll;
 var s: TObjGraf;
 begin
     For s In objetos do s.Selec; //selecciona todos
 End;
-procedure TVisGraf3D.DeseleccionarTodos();
+procedure TVisGraf3D.UnselectAll();
 var s: TObjGraf;
 begin
   For s In objetos do //no se explora "seleccion" porque se modifica con "s.Deselec"
@@ -649,7 +651,7 @@ begin
   //hay al menos uno
   Result := seleccion[seleccion.Count-1];  //devuelve el único o último
 End;
-function  TVisGraf3D.ObjPorNombre(nom: string): TObjGraf;
+function  TVisGraf3D.ObjByName(nom: string): TObjGraf;
 //Devuelve la referecnia a un objeto, dado el nombre. Si no encuentra, devuelve NIL.
 var s: TObjGraf;
 begin
@@ -662,47 +664,47 @@ begin
     end;
 End;
 
-procedure TVisGraf3D.moverAbajo(desp: Double = DESPLAZ_MENOR) ;  //abajo
+procedure TVisGraf3D.moveDown(desp: Double = DESPLAZ_MENOR) ;  //abajo
 //Genera un desplazamiento en la pantalla haciendolo independiente del
 //factor de ampliación actual
 var
     z: Single ;  //zoom
 begin
     z := v2d.zoom;
-    Desplazar(0, round(desp / z));
-    Refrescar;
+    Scroll(0, round(desp / z));
+    Refresh;
 end;
-procedure TVisGraf3D.moverArriba(desp: Double = DESPLAZ_MENOR) ;  //arriba
+procedure TVisGraf3D.moveUp(desp: Double = DESPLAZ_MENOR) ;  //arriba
 //Genera un desplazamiento en la pantalla haciendolo independiente del
 //factor de ampliación actual
 var
     z: Single ;  //zoom
 begin
     z := v2d.zoom;
-    Desplazar(0, round(-desp / z));
-    Refrescar;
+    Scroll(0, round(-desp / z));
+    Refresh;
 end;
-procedure TVisGraf3D.moverDerecha(desp: Double = DESPLAZ_MENOR) ;  //derecha
+procedure TVisGraf3D.moveRigth(desp: Double = DESPLAZ_MENOR) ;  //derecha
 //Genera un desplazamiento en la pantalla haciendolo independiente del
 //factor de ampliación actual
 var
     z: Single ;  //zoom
 begin
     z := v2d.zoom;
-    Desplazar(round(desp / z), 0);
-    Refrescar;
+    Scroll(round(desp / z), 0);
+    Refresh;
 end;
-procedure TVisGraf3D.moverIzquierda(desp: Double = DESPLAZ_MENOR) ;  //izquierda
+procedure TVisGraf3D.moveLeft(desp: Double = DESPLAZ_MENOR) ;  //izquierda
 //Genera un desplazamiento en la pantalla haciendolo independiente del
 //factor de ampliación actual
 var
     z: Single ;  //zoom
 begin
     z := v2d.zoom;
-    Desplazar(round(-desp / z), 0);
-    Refrescar;
+    Scroll(round(-desp / z), 0);
+    Refresh;
 end;
-procedure TVisGraf3D.Desplazar(dx, dy: integer);
+procedure TVisGraf3D.Scroll(dx, dy: integer);
 begin
 //Procedimiento "estandar" para hacer un desplazamiento de la pantalla
 //Varía los parámetros de la perspectiva "x_cam" e "y_cam"
@@ -746,7 +748,7 @@ begin
   For v In seleccion  do  //explora todos
     EliminarObjGrafico(v);
   if OnModif<>nil then OnModif;
-  Refrescar;
+  Refresh;
 end;
 
 /////////////////////////   Funciones del Rectángulo de Selección /////////////////////////
@@ -925,7 +927,7 @@ begin
   delete(txt, 1, i-1);  //elimina texto procesado
   Result := HaveSeparator;   //devuelve resultado
 end;
-function GetCoords(var txt: string; out x , y: Single): boolean;
+function GetCoords(var txt: string; out x , y, z: Single): boolean;
 {Devuelve las coordenadas leídas de una cadena de texto. Si hay error
 devuelve FALSE.}
 begin
@@ -934,6 +936,13 @@ begin
   if not GetSeparator(txt) then exit(false);
   y := GetNumber(txt);
   if y=MaxInt then exit(false);
+  if trim(txt) = '' then begin
+    z := 0;
+  end else begin
+    if not GetSeparator(txt) then exit(false);
+    z := GetNumber(txt);
+    if z=MaxInt then exit(false);
+  end;
   exit(true);
 end;
 procedure TVisGraf3D.proc_NORMAL(EventTyp: TVisEventTyp; Button: TMouseButton;
@@ -949,27 +958,27 @@ begin
      ogs := SeleccionaAlguno(xp, yp);  //verifica si selecciona a un objeto
      if          Shift = [ssRight] then begin     //Botón derecho
          if ogs = nil Then begin  //Ninguno seleccionado
-             DeseleccionarTodos;
-             Refrescar;
+             UnselectAll;
+             Refresh;
              State := EP_SELECMULT;  //inicia seleccion multiple
              InicRecSeleccion(x_pulso, y_pulso);
          end else begin //Selecciona a uno, pueden haber otros seleccionados
              if ogs.Selected Then  begin  //Se marcó sobre un seleccionado
-//                   if Shift = [] Then DeseleccionarTodos;
+//                   if Shift = [] Then UnselectAll;
                  ogs.MouseDown(Self, Button, Shift, xp, yp);  //Pasa el evento
                  exit;
              end;
              //Se selecciona a uno que no tenía selección
              if Shift = [ssRight] Then  //Sin Control ni Shift
-               DeseleccionarTodos;
+               UnselectAll;
              ogs.MouseDown(Self, Button, Shift, xp, yp);  //Pasa el evento
-             Refrescar;
+             Refresh;
               //ParaMover = True       ;  //listo para mover
          end;
      end else If Shift = [ssLeft] then begin      //Botón izquierdo
          if ogs = NIL Then  begin  //No selecciona a ninguno
-             DeseleccionarTodos;
-             Refrescar;
+             UnselectAll;
+             Refresh;
              State := EP_SELECMULT;  //inicia seleccion multiple
              InicRecSeleccion(x_pulso, y_pulso);
          end Else begin     //selecciona a uno, pueden haber otros seleccionados
@@ -977,14 +986,14 @@ begin
                  //No se quita la selección porque puede que se quiera mover
                  //varios objetos seleccionados. Si no se mueve, se quitará la
                  //selección en PBox_MouseUp
-                 //If Shift = 0 Then Call DeseleccionarTodos
+                 //If Shift = 0 Then Call UnselectAll
                  ogs.MouseDown(Self, Button, Shift, xp, yp);  //Pasa el evento
                  ParaMover := True;  //listo para mover
                  Exit;               //Se sale sin desmarcar
              end;
              //Se selecciona a uno que no tenía selección
              if Shift = [ssLeft] Then  //Sin Control ni Shift
-                DeseleccionarTodos;
+                UnselectAll;
              ogs.MouseDown(Self, Button, Shift, xp, yp);  //Pasa el evento
              ParaMover := True;            //listo para mover
          end;
@@ -1001,10 +1010,10 @@ begin
          State := EP_DESP_ANG;
      end;
   end else if EventTyp = vmeMouseMove then begin  /////// Movim. Mouse
-    //CapturoEvento lo actualiza la rutina "VerificarParaMover"
+    //CapturoEvento lo actualiza la rutina "VerifyForMove"
     If CapturoEvento <> NIL Then begin
        CapturoEvento.Mover(Xp, Yp, seleccion.Count);
-       Refrescar;
+       Refresh;
     end Else begin  //Movimiento simple
         s := VerificarMovimientoRaton(Xp, Yp);
         if s <> NIL then s.MouseMove(self, Shift, Xp, Yp);  //pasa el evento
@@ -1020,17 +1029,17 @@ begin
           End If*)
       end else If Button = mbLeft Then begin //----- solto izquierdo -----------
           If o = NIL Then    //No selecciona a ninguno
-//                DeseleccionarTodos
+//                UnselectAll
           else begin         //Selecciona a alguno
-              If Shift = [] Then DeseleccionarTodos;
+              If Shift = [] Then UnselectAll;
               o.Selec;   //selecciona
               o.MouseUp(self, Button, Shift, xp, yp, false);
-              Refrescar;
+              Refresh;
               //Verifica si el objeto está pidiendo que lo eliminen
 //Este código se comentó porque no se le encontró ninguna utilidad
 //                if o.Erased then begin
 //                  EliminarObjGrafico(o);
-//                  Refrescar;
+//                  Refresh;
 //                end;
           End;
           CapturoEvento := NIL;      //inicia bandera de captura de evento
@@ -1047,13 +1056,24 @@ begin
         //Cancela todos los comandos activos
         RestoreState;
       end else if UpCase(txt) = 'SELECT ALL' then begin
-        SeleccionarTodos;
-        Refrescar;
+        SelectAll;
+        Refresh;
+        RestoreState;
       end else if UpCase(txt) = 'ERASE' then begin
         ElimSeleccion;
-        Refrescar;
+        Refresh;
+        RestoreState;
+      end else if UpCase(txt) = 'HELP' then begin
+        OnSendMessage('   ===== Lista de comandos: =====');
+        OnSendMessage('[LINE] [RECTANGLE] [CANCEL] [SELECT ALL] [ERASE] [HELP]');
+        OnSendMessage('Para obtener más información sobre un comando, escriba:  HELP <comando>');
+        RestoreState;
+      end else if txt = '' then begin
+        RestoreState;
+        exit;  //No se hace nada
       end else begin
-        if OnSendMessage<>nil then OnSendMessage('Comando desconocido: "' + txt + '"');
+        OnSendMessage('Error: Comando desconocido: "' + txt + '". Escribe HELP para ver los comandos disp.');
+        RestoreState;
       end;
   end;
 end;
@@ -1079,7 +1099,7 @@ begin
           end;
         end;
     End;
-    Refrescar
+    Refresh;
   end else if EventTyp = vmeMouseUp then begin
     if objetos.Count > 100 Then begin  //Necesita actualizar porque la selección múltiple es diferente
       for o in objetos do
@@ -1099,13 +1119,13 @@ begin
     if OnModif<>nil then OnModif;  //cambio
     for s in seleccion do
         s.Mover(xp,yp, seleccion.Count);
-    Refrescar;
+    Refresh;
   end else if EventTyp = vmeMouseUp then begin
 //Debug.Print "Esatado EP_MOV_OBJS"
     for o In seleccion do  //Pasa el evento a la selección
         o.MouseUp(self, Button, Shift, xp, yp, State = EP_MOV_OBJS);
     State := EP_NORMAL;  //fin de movimiento
-    Refrescar;
+    Refresh;
     //Genera eventos. Los objetos movidos se pueden determinar a partir de la selección.
     if OnObjectsMoved<>nil then OnObjectsMoved;
   end;
@@ -1122,7 +1142,7 @@ begin
     v2d.y_cam -= dy;
     x_pulso := xp; y_pulso := yp;  {Tal vez deba usar otras variables aparte de x_pulso, e
                                   y_pulso,  para no interferir}
-    Refrescar;
+    Refresh;
   end else if EventTyp = vmeMouseUp then begin
     //Si estaba desplazándose, vuelve al estado normal
     State := EP_NORMAL;
@@ -1140,7 +1160,7 @@ begin
     v2d.Fi   := v2d.Fi + dy/100;
     x_pulso := xp; y_pulso := yp;  {Tal vez deba usar otras variables aparte de x_pulso, e
                                    y_pulso,  para no interferir}
-    Refrescar;
+    Refresh;
   end else if EventTyp = vmeMouseUp then begin
     State := EP_NORMAL;
   end;
@@ -1152,7 +1172,7 @@ begin
   end else if EventTyp = vmeMouseMove then begin
       //se está dimensionando un objeto
       CapturoEvento.Mover(Xp, Yp, seleccion.Count);
-      Refrescar;
+      Refresh;
   end else if EventTyp = vmeMouseUp then begin
     //pasa evento a objeto que se estaba dimensionando
     CapturoEvento.MouseUp(self, Button, Shift, xp, yp, false);
@@ -1179,33 +1199,34 @@ const
   {Usamos constante con tipo porque no hay STATIC en FreePascal, y como este
   procedimiento irá ejecutándose repetídamente, necesitamos conservar el valor de las
   variables, entre sesión y sesión.}
-  paso: integer  = 0;
   lin: TObjGrafDXF = nil;
   x0: Single = 0;  //Coordenadas iniciales
   y0: Single = 0;  //Coordenadas iniciales
 var
-  xLin, yLin: Single;
+  xLin, yLin, zLin: Single;
 begin
-  if paso = 0 then begin  //Inicio de comando
-    OnSendMessage('>> Ingrese punto inicial:');
-    paso := 1;
-  end else if paso = 1 then begin
+  if step = 0 then begin  //Inicio de comando
+    OnSendMessage('LINE');
+    onSendPrompt(' Ingrese punto inicial [Esc]:Cancelar >_');
+    step := 1;
+  end else if step = 1 then begin  //step: "Espera coorddenadas iniciales"
     case EventTyp of
     vmeEjecComm: begin  //Inicio de comando
       //Esperamos coordenadas iniciales
       if txt = 'CANCEL' then begin  //válido en cualquier estado
-        RestoreState('>> Comando:');   //Termina
-        paso := 0;   //reinicia
+        Refresh;
+        RestoreState;   //Termina
         exit;
       end;
-      if not GetCoords(txt, xLin, yLin) then begin
-        OnSendMessage('>> ERROR: Ingrese punto inicial:');
+      if not GetCoords(txt, xLin, yLin, zLin) then begin
+        OnSendMessage('Error: Coordenadas erróneas: ' + txt);
+        onSendPrompt(' Ingrese punto inicial [Esc]:Cancelar >_');
         exit;
       end;
       //Agregar recta, con las coord. dadas
       lin := TObjGrafDXF.Create(v2d);
-      lin.SetP0(xLin, yLin, 0); //Especifica el primer punto
-      lin.SetP1(xvPtr, yvPtr, 0); //Especifica siguiente punto por defecto
+      lin.SetP0(xLin, yLin, zLin); //Especifica el primer punto
+      lin.SetP1(xvPtr, yvPtr, zLin); //Especifica siguiente punto por defecto
       x0 := xLin; y0 := yLin;  //guarda primer punto
     end;
     vmeMouseDown: begin
@@ -1215,73 +1236,77 @@ begin
       lin.SetP1(xvPtr, yvPtr, 0);
       x0 := xvPtr; y0 := yvPtr;  //guarda primer punto
     end;
-    else exit;  //Sale para los otros eventos, sino puede generar errro
+    else exit;  //Sale para los otros eventos, sino puede generar error
     end;
     AgregarObjGrafico(lin);
-    Refrescar;
-    OnSendMessage('>> Ingrese siguiente punto ([C]errar):');
-    paso := 2;
-  end else if paso = 2 then begin
+    Refresh;
+    OnSendMessage(FloatToStr(xLin) + ' ' + FloatToStr(yLin));
+    onSendPrompt(' Ingrese siguiente punto [Enter]:Terminar [C]:Cerrar >_');
+    step := 2;
+  end else if step = 2 then begin  //step: "Espera coorddenadas finales"
     case EventTyp of
     vmeEjecComm: begin  //Inicio de comando
       //Esperamos coordenadas finales
       if txt = 'CANCEL' then begin
         //Se debe eliminar la última recta
         EliminarObjGrafico(lin);   //Mejor sería, si se hace con un UNDO
-        Refrescar;
-        RestoreState('>> Comando:');   //Termina
-        paso := 0;   //reinicia
+        Refresh;
+        RestoreState;   //Termina
         exit;
       end;
       if txt = 'C' then begin
         //Cerrar líneas
         lin.SetP1(x0, y0, 0);
-        Refrescar;
-        paso := 0;   //reinicia
+        Refresh;
+        step := 0;   //reinicia
         exit;
       end;
-      if not GetCoords(txt, xLin, yLin) then begin
-        OnSendMessage('>> Ingrese siguiente punto ([C]errar):');
+      if txt = '' then begin  //Enter
+        //Termina la línea
+        EliminarObjGrafico(lin);   //Mejor sería, si se hace con un UNDO
+        Refresh;
+        RestoreState;   //Termina
         exit;
       end;
-      lin.SetP1(xLin, yLin, 0);
-      Refrescar;
+      if not GetCoords(txt, xLin, yLin, zLin) then begin
+        OnSendMessage('Error: Coordenadas erróneas: ' + txt);
+        onSendPrompt(' Ingrese siguiente punto [Enter]:Terminar [C]:Cerrar >_');
+        exit;
+      end;
+      lin.SetP1(xLin, yLin, zLin);
+      Refresh;
 
       //Inicia otra recta, sin salir del estado
       lin := TObjGrafDXF.Create(v2d);
       lin.SetP0(xLin, yLin, 0); //Esperamos coordenadas
       lin.SetP1(xvPtr, yvPtr, 0);
       AgregarObjGrafico(lin);
-      Refrescar;
-      OnSendMessage('>> Ingrese siguiente punto ([C]errar):');
+      Refresh;
+      OnSendMessage(FloatToStr(xLin) + ' ' + FloatToStr(yLin));
+      onSendPrompt(' Ingrese siguiente punto [Enter]:Terminar [C]:Cerrar >_');
 //        //Terminó el comando
-//        RestoreState('>> Comando:');
-//        paso := 0;
+//        RestoreState;
+//        step := 0;
 //        lin := nil;
     end;
     vmeMouseMove: begin
       //En esta fase, se debe hacer la animación por si se usa el Mouse para ubicar
         //el siguiente punto.
       lin.SetP1(xvPtr, yvPtr, 0);
-      Refrescar;
+      Refresh;
     end;
     vmeMouseDown: begin
       //Esperamos coordenadas finales
       lin.SetP1(xvPtr, yvPtr, 0);
-      Refrescar;
+      Refresh;
 
       //Inicia otra recta, sin salir del estado
       lin := TObjGrafDXF.Create(v2d);
       lin.SetP0(xvPtr, yvPtr, 0); //Esperamos coordenadas
       lin.SetP1(xvPtr, yvPtr, 0);
       AgregarObjGrafico(lin);
-      Refrescar;
-      OnSendMessage('>> Ingrese siguiente punto:');
-
-//        //Terminó el comando
-//        RestoreState('>> Comando:');
-//        paso := 0;
-//        lin := nil;
+      Refresh;
+      onSendPrompt(' Ingrese siguiente punto [Enter]:Terminar [C]:Cerrar >_');
     end;
     end;
   end;
@@ -1292,108 +1317,158 @@ const
   {Usamos constante con tipo porque no hay STATIC en FreePascal, y como este
   procedimiento irá ejecutándose repetídamente, necesitamos conservar el valor de las
   variables, entre sesión y sesión.}
-  paso: integer  = 0;
-  lin: TObjGrafDXF = nil;
+  lin1: TObjGrafDXF = nil;
+  lin2: TObjGrafDXF = nil;
+  lin3: TObjGrafDXF = nil;
+  lin4: TObjGrafDXF = nil;
 var
-  xLin, yLin: Single;
+  xLin, yLin, zLin: Single;
 begin
-  case EventTyp of
-  vmeEjecComm: begin  //Inicio de comando
-      if paso = 0 then begin  //Inicio de comando
-        OnSendMessage('>> Ingrese punto inicial:');
-        paso := 1;
-      end else if paso = 1 then begin
-        if txt = 'CANCEL' then begin  //válido en cualquier estado
-          RestoreState('>> Comando:');   //Termina
-          paso := 0;   //reinicia
-          exit;
-        end;
-        //Esperamos coordenadas iniciales
-        if not GetCoords(txt, xLin, yLin) then begin
-          OnSendMessage('>> ERROR: Ingrese punto inicial:');
-          exit;
-        end;
-        //Agregar recta, con las coord. dadas
-        lin := TObjGrafDXF.Create(v2d);
-        lin.SetP0(xLin, yLin, 0); //Especifica el primer punto
-        lin.SetP1(xvPtr, yvPtr, 0); //Especifica el primer punto
-        AgregarObjGrafico(lin);
-        Refrescar;
-        OnSendMessage('>> Ingrese siguiente punto:');
-        paso := 2;
-      end else if paso = 2 then begin
-        if txt = 'CANCEL' then begin
-          //Se debe eliminar la última recta
-          EliminarObjGrafico(lin);   //Mejor sería, si se hace con un UNDO
-          Refrescar;
-          RestoreState('>> Comando:');   //Termina
-          paso := 0;   //reinicia
-          exit;
-        end;
-        //Esperamos coordenadas finales
-        if not GetCoords(txt, xLin, yLin) then begin
-          OnSendMessage('>> ERROR: Ingrese punto inicial:');
-          exit;
-        end;
-        lin.SetP1(xLin, yLin, 0);
-        Refrescar;
-
-        //Terminó el comando
-        RestoreState('>> Comando:');
-        paso := 0;
-        lin := nil;
+  if step = 0 then begin  //Inicio de comando
+    OnSendMessage('RECTANGLE');
+    onSendPrompt(' Ingrese punto inicial [Esc]:Cancelar >_');
+    step := 1;
+  end else if step = 1 then begin
+    case EventTyp of
+    vmeEjecComm: begin  //Inicio de comando
+      //Esperamos coordenadas iniciales
+      if txt = 'CANCEL' then begin  //válido en cualquier estado
+        Refresh;
+        RestoreState;   //Termina
+        exit;
       end;
-    end;
-  vmeMouseMove: begin
-    if paso = 2 then begin
-        //En esta fase, se debe hacer la animación por si se usa el Mouse para ubicar
-        //el siguiente punto.
-        lin.SetP1(xvPtr, yvPtr, 0);
-        Refrescar;
-    end;
-  end;
-  vmeMouseDown: begin
-      if paso = 1 then begin
-        //Agregar recta, con las coord. dadas
-        lin := TObjGrafDXF.Create(v2d);
-        lin.SetP0(xvPtr, yvPtr, 0); //Esperamos coordenadas
-        lin.SetP1(xvPtr, yvPtr, 0);
-        AgregarObjGrafico(lin);
-        Refrescar;
-        OnSendMessage('>> Ingrese siguiente punto:');
-        paso := 2;
-      end else if paso = 2 then begin
-        //Esperamos coordenadas finales
-        lin.SetP1(xvPtr, yvPtr, 0);
-        Refrescar;
-
-        //Inicia otra recta, sin salir del estado
-        lin := TObjGrafDXF.Create(v2d);
-        lin.SetP0(xvPtr, yvPtr, 0); //Esperamos coordenadas
-        lin.SetP1(xvPtr, yvPtr, 0);
-        AgregarObjGrafico(lin);
-        Refrescar;
-        OnSendMessage('>> Ingrese siguiente punto:');
-
-//        //Terminó el comando
-//        RestoreState('>> Comando:');
-//        paso := 0;
-//        lin := nil;
+      if not GetCoords(txt, xLin, yLin, zLin) then begin
+        OnSendMessage('Error: Coordenadas erróneas: ' + txt);
+        onSendPrompt(' Ingrese punto inicial [Esc]:Cancelar >_');
+        exit;
       end;
+      //Agregar rectas del rectángulo, con las coord. dadas
+      lin1 := TObjGrafDXF.Create(v2d);
+      lin1.SetP0(xLin, yLin, zLin); //Especifica el primer punto
+      lin1.SetP1(xvPtr, yvPtr, zLin); //Especifica el primer punto
+
+      lin2 := TObjGrafDXF.Create(v2d);
+      lin2.SetP0(xLin, yLin, 0); //Especifica el primer punto
+      lin2.SetP1(xvPtr, yvPtr, 0); //Especifica el primer punto
+
+      lin3 := TObjGrafDXF.Create(v2d);
+      lin3.SetP0(xLin, yLin, 0); //Especifica el primer punto
+      lin3.SetP1(xvPtr, yvPtr, 0); //Especifica el primer punto
+
+      lin4 := TObjGrafDXF.Create(v2d);
+      lin4.SetP0(xLin, yLin, 0); //Especifica el primer punto
+      lin4.SetP1(xvPtr, yvPtr, 0); //Especifica el primer punto
+    end;
+    vmeMouseDown: begin
+      //Agregar recta, con las coord. dadas
+      lin1 := TObjGrafDXF.Create(v2d);
+      lin1.SetP0(xvPtr, yvPtr, 0); //Esperamos coordenadas
+      lin1.SetP1(xvPtr, yvPtr, 0);
+
+      lin2 := TObjGrafDXF.Create(v2d);
+      lin2.SetP0(xvPtr, yvPtr, 0); //Esperamos coordenadas
+      lin2.SetP1(xvPtr, yvPtr, 0);
+
+      lin3 := TObjGrafDXF.Create(v2d);
+      lin3.SetP0(xvPtr, yvPtr, 0); //Esperamos coordenadas
+      lin3.SetP1(xvPtr, yvPtr, 0);
+
+      lin4 := TObjGrafDXF.Create(v2d);
+      lin4.SetP0(xvPtr, yvPtr, 0); //Esperamos coordenadas
+      lin4.SetP1(xvPtr, yvPtr, 0);
+
+    end;
+    else exit;  //Sale para los otros eventos, sino puede generar error
+    end;
+    AgregarObjGrafico(lin1);
+    AgregarObjGrafico(lin2);
+    AgregarObjGrafico(lin3);
+    AgregarObjGrafico(lin4);
+    Refresh;
+    OnSendMessage(FloatToStr(xLin) + ' ' + FloatToStr(yLin));
+    onSendPrompt(' Ingrese siguiente punto [Enter]:Terminar [C]:Cerrar >_');
+    step := 2;
+  end else if step = 2 then begin
+    case EventTyp of
+    vmeEjecComm: begin  //Inicio de comando
+      //Esperamos coordenadas finales
+      if txt = 'CANCEL' then begin
+        //Se debe eliminar la última recta
+        EliminarObjGrafico(lin1);   //Mejor sería, si se hace con un UNDO
+        Refresh;
+        RestoreState;   //Termina
+        exit;
+      end;
+      if not GetCoords(txt, xLin, yLin, zLin) then begin
+        OnSendMessage('Error: Coordenadas erróneas: ' + txt);
+        onSendPrompt(' Ingrese punto final [Enter]:Terminar [C]:Cerrar >_');
+        exit;
+      end;
+      xvPtr := xLin;
+      yvPtr := yLin;
+      lin1.SetP1(xvPtr, lin1.P0.y, 0);
+      lin2.SetP1(lin1.P0.x, yvPtr, 0);
+      lin3.SetP0(xvPtr, lin1.P0.y, 0);
+      lin3.SetP1(xvPtr, yvPtr, 0);
+      lin4.SetP0(lin1.P0.x, yvPtr, 0);
+      lin4.SetP1(xvPtr, yvPtr, 0);
+      Refresh;
+      //Terminó el comando
+      RestoreState;
+      lin1 := nil;
+      lin2 := nil;
+      lin3 := nil;
+      lin4 := nil;
+    end;
+    vmeMouseMove: begin
+      //En esta fase, se debe hacer la animación por si se usa el Mouse para ubicar
+      //el siguiente punto.
+      lin1.SetP1(xvPtr, lin1.P0.y, 0);
+      lin2.SetP1(lin1.P0.x, yvPtr, 0);
+      lin3.SetP0(xvPtr, lin1.P0.y, 0);
+      lin3.SetP1(xvPtr, yvPtr, 0);
+      lin4.SetP0(lin1.P0.x, yvPtr, 0);
+      lin4.SetP1(xvPtr, yvPtr, 0);
+      Refresh;
+    end;
+    vmeMouseDown: begin
+      //Esperamos coordenadas finales
+      lin1.SetP1(xvPtr, lin1.P0.y, 0);
+      lin2.SetP1(lin1.P0.x, yvPtr, 0);
+      lin3.SetP0(xvPtr, lin1.P0.y, 0);
+      lin3.SetP1(xvPtr, yvPtr, 0);
+      lin4.SetP0(lin1.P0.x, yvPtr, 0);
+      lin4.SetP1(xvPtr, yvPtr, 0);
+      Refresh;
+      //Terminó el comando
+      RestoreState;
+      lin1 := nil;
+      lin2 := nil;
+      lin3 := nil;
+      lin4 := nil;
+    end;
     end;
   end;
 end;
 //Inicialización
-procedure TVisGraf3D.RestoreState(msg: string='');
+procedure TVisGraf3D.RestoreState(prompt: string='');
 {Restaura el estado del Visor, poniéndolo en estado EP_NORMAL.
 Si se indica "msg", se genera el evento OnSendMessage().}
 begin
-  State := EP_NORMAL;
+  if State<>EP_NORMAL then begin
+    OnSendMessage('>> Comando terminado.');
+    State := EP_NORMAL;
+  end;
   ParaMover := false;
   CapturoEvento := nil;
   ultMarcado := nil;
   PBox.Cursor := CUR_DEFEC;        //define cursor
-  if msg<>'' then OnSendMessage(msg);
+  if prompt<>'' then begin
+    if onSendPrompt<>nil then onSendPrompt(prompt);
+  end else begin
+    if onSendPrompt<>nil then onSendPrompt(' Comando:>_');
+  end;
+  step := 0;   //Reinicia el step
 end;
 constructor TVisGraf3D.Create(PB0: TPaintBox; objectList: TlistObjGraf);
 {Metodo de inicialización de la clase Visor. Debe indicarse el PaintBox de
@@ -1433,8 +1508,8 @@ begin
   RegisterState(EP_COMM_LINE, @proc_COMM_LINE);
   RegisterState(EP_COMM_RECTAN, @proc_COMM_RECTAN);
   ///////////!!!!!!!!!!!!!!!!!!!!!!
-og := TMiObjeto.Create(v2d);
-AgregarObjGrafico(og);
+//og := TMiObjeto.Create(v2d);
+//AgregarObjGrafico(og);
 end;
 destructor TVisGraf3D.Destroy;
 begin

@@ -30,6 +30,7 @@ type
     function GetyCam: Single;
     function GetZoom: Single;
     procedure motEdi_ChangeView;
+    procedure visEdiSendPrompt(msg: string);
     procedure visEdi_Modif;
     procedure SetAlfa(AValue: Single);
     procedure SetFi(AValue: Single);
@@ -46,13 +47,14 @@ type
     procedure visEdi_SendMessage(msg: string);
   public
     objetos : TlistObjGraf; //Lista de objetos
-    visEdi  : TVisGraf3D;  //motor de edición  (La idesa es que pueda haber más de uno)
+    visEdi  : TVisGraf3D;   //Motor de edición  (La idesa es que pueda usarse más de uno)
     Modif   : Boolean;      //bandera para indicar Diagrama Modificado
     OnObjetosElim  : TOnObjetosElim;   //cuando se elminan uno o más objetos
     OnCambiaPerspec: procedure of object; //Cambia x_des,y_des,x_cam,y_cam,alfa,fi o zoom
     OnMouseMoveVirt: TEveMouseVisGraf;
     OnChangeState  : TEvChangeState;  //Cambia el estado del Visor
     OnSendMessage  : TEvSendMessage;  //Envía un mensaje. Usado para respuesta a comandos
+    OnSendPrompt   : TEvSendMessage;  //Envía una petición de comando.
     procedure EliminarTodosObj;
   public //Propiedades reflejadas
     property xDes: integer read GetxDes write SetxDes;
@@ -78,7 +80,7 @@ procedure TfraVisorGraf.EliminarTodosObj;
 begin
   if objetos.Count=0 then exit;  //no hay qué eliminar
   //elimina
-  visEdi.DeseleccionarTodos;  //por si acaso hay algun simbolo seleccionado
+  visEdi.UnselectAll();  //por si acaso hay algun simbolo seleccionado
   objetos.Clear;          //limpia la lista de objetos
   visEdi.RestoreState;
   Modif := true;          //indica que se modificó
@@ -158,6 +160,10 @@ procedure TfraVisorGraf.visEdi_SendMessage(msg: string);
 begin
   if OnSendMessage<>nil then OnSendMessage(msg);
 end;
+procedure TfraVisorGraf.visEdiSendPrompt(msg: string);
+begin
+  if OnSendPrompt<>nil then OnSendPrompt(msg);
+end;
 
 function TfraVisorGraf.GetAlfa: Single;
 begin
@@ -185,6 +191,7 @@ begin
   //Ubica (0,0) a 10 pixeles del ángulo inferior izquierdo
   visEdi.v2d.x_cam:=((PaintBox1.Width div 2)-10)/visEdi.v2d.Zoom;
   visEdi.v2d.y_cam:=((PaintBox1.Height div 2)-10)/visEdi.v2d.Zoom;
+  visEdi.RestoreState;  //Para iniciar comando
 end;
 constructor TfraVisorGraf.Create(AOwner: TComponent; ListObjGraf: TlistObjGraf);
 begin
@@ -197,6 +204,7 @@ begin
   visEdi.OnMouseMove  :=@visEdi_MouseMove;
   visEdi.OnChangeState:=@visEdi_ChangeState;
   visEdi.OnSendMessage:=@visEdi_SendMessage;
+  visEdi.onSendPrompt := @visEdiSendPrompt;
 end;
 destructor TfraVisorGraf.Destroy;
 begin

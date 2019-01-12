@@ -1,3 +1,14 @@
+Titocad 0.2.7
+=============
+Se cambian los nombres de algunos métodos en la unidad DefObjGraf, a su versión en
+inglés y para hacerlos consistentes con la librería ogEditGraf.
+Se integra un panel de comandos nuevo y se modifica las rutinas de mensajes para adaptarse
+a la nueva forma de trabajo.
+Se realizan traducciones al ingles de diversas partes de la unidad VisGraf3D.
+Se cambia el esquema de procesamiento del comando RECTANGLE a la misma forma en que se
+maneja el comando LINE.
+Se habilita el comando RECTANGLE.
+
 Titocad 0.2.6
 =============
 Se actualizan las librerías a versiones más recientes.

@@ -38,19 +38,24 @@ type
   { TObjVsible }
   //Clase base para todos los objetos visibles
   TObjVsible = class
+  private
+    procedure Setx(AValue: Single);
+    procedure Sety(AValue: Single);
   protected
     fx,fy,fz  : Single;    //coordenadas virtuales
     v2d       : TMotGraf;  //motor gráfico
     Xant,Yant : Integer;   //coordenadas anteriores
   public
-    Id        : Integer;   //Identificador del Objeto. No usado por la clase. Se deja para facilidad de identificación.
+    //Cuadro de selección
     Width     : Single;    //ancho
     Height    : Single;    //alto
+  public
+    Id        : Integer;   //Identificador del Objeto. No usado por la clase. Se deja para facilidad de identificación.
     Selected  : Boolean;   //indica si el objeto está seleccionado
     Visible   : boolean;   //indica si el objeto es visible
     procedure Crear(mGraf: TMotGraf; ancho0, alto0: Integer);  //no es constructor
-    procedure Ubicar(const xv, yv, zv: Single);  //Fija posición
-    procedure Ubicar(const P: TMotPoint);  //Fija posición
+    procedure Locate(const xv, yv, zv: Single);  //Fija posición
+    procedure Locate(const P: TMotPoint);  //Fija posición
     function LoSelec(xp, yp: Integer): Boolean;
     function StartMove(xr, yr: Integer): Boolean;
     property x: Single read fx;
@@ -207,14 +212,24 @@ begin
   height :=alto0;
   visible := true;
 end;
-procedure TObjVsible.Ubicar(const xv, yv, zv: Single);
+procedure TObjVsible.Setx(AValue: Single);
+begin
+  if fx=AValue then Exit;
+  fx:=AValue;
+end;
+procedure TObjVsible.Sety(AValue: Single);
+begin
+  if fy=AValue then Exit;
+  fy:=AValue;
+end;
+procedure TObjVsible.Locate(const xv, yv, zv: Single);
 {Ubica en coordenadas virtuales}
 begin
   fx := xv;
   fy := yv;
   fz := zv;
 end;
-procedure TObjVsible.Ubicar(const P: TMotPoint);
+procedure TObjVsible.Locate(const P: TMotPoint);
 {Ubica en coordenadas virtuales}
 begin
   fx := P.x;
