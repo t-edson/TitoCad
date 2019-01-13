@@ -21,7 +21,7 @@ TDXFentType = (
 TObjGrafDXF = class;
 TObjGrafDXF_list = specialize TFPGObjectList<TObjGrafDXF>;
 { TMiObjeto }
-TMiObjeto = class(TObjGraf)  //objeto gráfico que dibujaremos
+TMiObjeto = class(TObjGraph)  //objeto gráfico que dibujaremos
   procedure Dibujar; override;  //Dibuja el objeto gráfico
   constructor Create(mGraf: TMotGraf); override;
 private
@@ -30,7 +30,7 @@ end;
 
 { TObjGrafDXF }
 {Se define al objeto para que sea compatible con archivos DXF.}
-TObjGrafDXF = class(TObjGraf)  //objeto gráfico DXF
+TObjGrafDXF = class(TObjGraph)  //objeto gráfico DXF
 private
   pc0, pc1, pcM: TPtoCtrl;
   procedure PtoCtrl0_Move(xvTar, yvTar, dx, dy: Single);

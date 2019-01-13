@@ -61,9 +61,9 @@ begin
     exit;
   end;
   //Asignación
-  presup.nombre   := txtNombre.Text;
-  presup.notas    := txtNotas.Text;
-  presup.creadoPor:= txtCreadoPor.TextHint;
+  presup.name   := txtNombre.Text;
+  presup.notes    := txtNotas.Text;
+  presup.author:= txtCreadoPor.TextHint;
   Aceptado := true;
   //self.Hide;
 end;
@@ -78,9 +78,9 @@ begin
   presup := presup0;
   procRefresc := procRefrescar;
 
-  txtNombre.Text   := presup.nombre;
-  txtCreadoPor.Text:= presup.creadoPor;
-  txtNotas.Text    := presup.notas;
+  txtNombre.Text   := presup.name;
+  txtCreadoPor.Text:= presup.author;
+  txtNotas.Text    := presup.notes;
 
   ButtonPanel1.OKButton.Enabled := not soloLect;
 
@@ -95,7 +95,7 @@ var
 begin
   maxord := '1'; //frmAbrirPresup.LeerMaxOrdinalPresup;
   //configura valores iniciales
-  presup0.nombre := 'Proyecto' + maxord;
+  presup0.name := 'Proyecto' + maxord;
   //Abre ventana de propiedades
   Result := Exec(presup0, nil);
 end;

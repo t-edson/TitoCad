@@ -2,7 +2,7 @@
 <CONFIG>
   <General>
     <VerBarHer Val="True"/>
-    <StateStatusbar Val="1"/>
+    <StateStatusbar Val="0"/>
     <VerBarEst Val="True"/>
   </General>
   <Vista>

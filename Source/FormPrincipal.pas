@@ -348,7 +348,7 @@ begin
 //    mnPresup.Enabled:=true;  //activa todo el menú
 //    mnTablero.Enabled:=true;
 //    mnReportes.Enabled:=true;
-    Caption := NOM_PROG + ' ' + VER_PROG + ' - ' + curProject.nombre;
+    Caption := NOM_PROG + ' ' + VER_PROG + ' - ' + curProject.name;
 //    acArcGuar.Enabled := curProject.Modific;
 //    acArcGuarCom.Enabled:=true;
 //    acArcCerrar.Enabled:=true;

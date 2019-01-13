@@ -46,7 +46,7 @@ type
       );
     procedure visEdi_SendMessage(msg: string);
   public
-    objects : TObjGrafList; //Referencia a Lista de objetos
+    objects : TObjGraphList; //Referencia a Lista de objetos
     visEdi  : TVisGraf3D;   //Motor de edición  (La idesa es que pueda usarse más de uno)
     Modif   : Boolean;      //bandera para indicar Diagrama Modificado
     OnObjetosElim  : TOnObjetosElim;   //cuando se elminan uno o más objetos
@@ -68,7 +68,7 @@ type
     function StateAsStr: string; //Cadena de descripción de estado
   public  //Inicialización
     procedure InicVista;
-    constructor Create(AOwner: TComponent; ListObjGraf: TObjGrafList);
+    constructor Create(AOwner: TComponent; ListObjGraf: TObjGraphList);
     destructor Destroy; override;
   end;
 
@@ -193,7 +193,7 @@ begin
   visEdi.v2d.y_cam:=((PaintBox1.Height div 2)-10)/visEdi.v2d.Zoom;
   visEdi.RestoreState;  //Para iniciar comando
 end;
-constructor TfraCadView.Create(AOwner: TComponent; ListObjGraf: TObjGrafList);
+constructor TfraCadView.Create(AOwner: TComponent; ListObjGraf: TObjGraphList);
 begin
   inherited Create(AOwner);
   objects := ListObjGraf;  //recibe lista de objects

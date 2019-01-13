@@ -14,7 +14,7 @@ uses
 type
   TEvClickDerPro = procedure(pro: TCadProject) of object;
   TEvClickDerPag = procedure(pag: TCadPage) of object;
-  TEvClickDerObj = procedure(obj: TObjGrafList) of object;
+  TEvClickDerObj = procedure(obj: TObjGraphList) of object;
   TEvClickDerVis = procedure(vis: TfraCadView) of object;
 
   { TfraExplorProyectos }
@@ -200,7 +200,7 @@ var
   nodPag: TTreeNode;
   nodProj: TTreeNode;
   nodGeomet, nodVista, nodObjGraf: TTreeNode;
-  og : TObjGraf;
+  og : TObjGraph;
 begin
   //muestra su título
   Label2.Caption:=self.Caption;
@@ -214,12 +214,12 @@ begin
   end;
   //Hay un proyecto abierto
   //Agrega nodo de proyecto
-  nodProj := arbNaveg.items.AddChild(nil, curProject^.nombre);  //agrega proyecto actual
+  nodProj := arbNaveg.items.AddChild(nil, curProject^.name);  //agrega proyecto actual
   nodProj.ImageIndex    := IMIDX_PROYEC;
   nodProj.SelectedIndex :=IMIDX_PROYEC;
   //Agrega nodo de las páginas
   arbNaveg.BeginUpdate;
-  for pag in curProject^.paginas do begin
+  for pag in curProject^.pages do begin
      nodPag := arbNaveg.Items.AddChild(nodProj, pag.name);
      nodPag.ImageIndex   := IMIDX_PAGINA;
      nodPag.SelectedIndex:= IMIDX_PAGINA;

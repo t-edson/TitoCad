@@ -31,9 +31,8 @@ type
       yv, zv: Single);
   public
     name       : string;
-    parent     : TCadProject;      //Referencia al objeto padre.
-//    objetosGraf: TCadObjetos_list; //Lista de elementos gráficos
-    objects    : TObjGrafList;     //Lista de objetos
+    parent     : TCadProject;     //Referencia al objeto padre.
+    objects    : TObjGraphList;   //Lista de objetos
   public  //Manejo de las vistas
     view       : TfraCadView;     //Una sola vista por el momento
     OnCambiaPerspec: TEveChangePerspec; //Cambia x_des,y_des,x_cam,y_cam,alfa,fi o zoom
@@ -57,11 +56,12 @@ type
       yv, zv: Single);
     procedure SetActivePage(AValue: TCadPage);
     procedure SetModific(AValue: boolean);
+  public  //Información del proyecto.
+    name     : string;
+    author   : string;
+    notes    : string;
+    units    : TCadUnits;
   public
-    nombre : string;
-    creadoPor: string;
-    notas    : string;
-    unidades : TCadUnits;
     OnModific : procedure of object; //Proyecto modificado
     OnCambiaPerspec: TEveChangePerspec;  //Cambia x_des, y_des, x_cam, alfa, ...
     OnMouseMoveVirt: TEveMouseVisGraf;
@@ -69,7 +69,7 @@ type
     property Modific: boolean read fModific write SetModific;
     procedure GuardarArchivo;
   public  //Campos de página
-    paginas: TCadPagina_list; {Lista de páginas. Debe contener al menos una.}
+    pages  : TCadPagina_list; {Lista de páginas. Debe contener al menos una.}
     OnChangeActivePage: procedure of object;
     Property ActivePage: TCadPage read FActivePage write SetActivePage;
     function IndexOfPage(pag: TCadPage): integer;
@@ -79,7 +79,7 @@ type
     procedure SetActivePageByName(pagName: string);
     function AddPage: TCadPage;
     procedure RemovePage(pagName: TCadPage);
-    procedure RemovePage(name: string);
+    procedure RemovePage(pagName: string);
     procedure HideAllPages;
   public  //Iniicialización
     constructor Create;
@@ -105,7 +105,7 @@ begin
 end;
 constructor TCadPage.Create;
 begin
-  objects := TObjGrafList.Create(true);   //contenedor
+  objects := TObjGraphList.Create(true);   //contenedor
   view:= TfraCadView.Create(nil, objects);  //crea una vista
 
 //  vista.Parent := TabSheet1;
@@ -162,7 +162,7 @@ var
 begin
   if FActivePage=AValue then Exit;
   //Verifica si la página solicitada, existe
-  for pag in paginas do begin
+  for pag in pages do begin
     if pag = AValue then begin
       //Existe
       FActivePage:=AValue;
@@ -179,8 +179,8 @@ function TCadProject.IndexOfPage(pag: TCadPage): integer;
 var
   i: integer;
 begin
-  for i:=0 to paginas.Count-1 do begin
-    if paginas[i] = pag then exit(i);
+  for i:=0 to pages.Count-1 do begin
+    if pages[i] = pag then exit(i);
   end;
   //No encontró
   exit(-1);
@@ -196,7 +196,7 @@ begin
   if i=0 then begin  //no hay anterior, devuelve la misma
     exit(pag);
   end else begin
-    exit(paginas[i-1]); //devuelve anterior
+    exit(pages[i-1]); //devuelve anterior
   end;
 end;
 function TCadProject.NextPage(pag: TCadPage): TCadPage;
@@ -207,10 +207,10 @@ var
 begin
   i := IndexOfPage(pag);
   if i=-1 then exit(niL);
-  if i=paginas.Count-1 then begin  //no hay siguiente, devuelve la misma
+  if i=pages.Count-1 then begin  //no hay siguiente, devuelve la misma
     exit(pag);
   end else begin
-    exit(paginas[i+1]); //devuelve siguiente
+    exit(pages[i+1]); //devuelve siguiente
   end;
 end;
 function TCadProject.PageByName(pagName: string): TCadPage;
@@ -219,7 +219,7 @@ devuelve NIL.}
 var
   pag: TCadPage;
 begin
-  for pag in paginas do begin
+  for pag in pages do begin
     if pag.name = pagName then exit(pag);
   end;
   exit(nil);
@@ -228,7 +228,7 @@ procedure TCadProject.SetActivePageByName(pagName: string);
 var
   pag: TCadPage;
 begin
-  for pag in paginas do begin
+  for pag in pages do begin
     if pag.name = pagName then begin
       ActivePage := pag;
       exit;
@@ -242,44 +242,44 @@ var
   pag: TCadPage;
 begin
   pag := TCadPage.Create;
-  pag.name:='Página'+IntToStr(paginas.Count+1);
+  pag.name:='Página'+IntToStr(pages.Count+1);
   pag.parent := self;
   pag.OnCambiaPerspec:=@pag_CambiaPerspec;
   pag.OnMouseMoveVirt:=@pag_MouseMoveVirt;
   pag.OnChangeState:=@pag_ChangeState;
-  paginas.Add(pag);
+  pages.Add(pag);
   Modific:=true;   //es un cambio
   Result := pag;
 end;
 procedure TCadProject.RemovePage(pagName: TCadPage);
 {Elimina la página indicada.}
 begin
-  if paginas.Count=1 then begin
+  if pages.Count=1 then begin
     MsgExc('No se pueden eliminar todas las páginas.');
     exit;
   end;
   if ActivePage = pagName then begin
     //Se está borrando la página activa, hay que moverla
-    if pagName = paginas.First then   //es la primera
+    if pagName = pages.First then   //es la primera
       ActivePage := NextPage(pagName)  //pasa a la siguiente
     else
       ActivePage := PrevPage(pagName);  //pasa a la anetrior
   end;
-  paginas.Remove(pagName);
+  pages.Remove(pagName);
   Modific:=true;   //es un cambio
 end;
-procedure TCadProject.RemovePage(name: string);
+procedure TCadProject.RemovePage(pagName: string);
 var
   pag: TCadPage;
 begin
-  for pag in paginas do begin
-    if pag.name = name then begin
+  for pag in pages do begin
+    if pag.name = pagName then begin
       RemovePage(pag);
       exit;
     end;
   end;
   //No encontró
-  MsgExc('No existe la página: "%s"', [name]);
+  MsgExc('No existe la página: "%s"', [pagName]);
 end;
 procedure TCadProject.HideAllPages;
 {Pone las vistas de todas las páginas en visible := FALSE, de modo que no se mostrarán
@@ -287,7 +287,7 @@ en el control asignado.}
 var
   pag: TCadPage;
 begin
-  for pag in paginas do begin
+  for pag in pages do begin
     pag.view.Visible:=false;
   end;
 end;
@@ -297,14 +297,14 @@ constructor TCadProject.Create;
 var
   pag: TCadPage;
 begin
-  paginas:= TCadPagina_list.Create(true);
+  pages:= TCadPagina_list.Create(true);
   //Crea una página
   pag := AddPage;
   ActivePage := pag;   //la pone como activa por defecto
 end;
 destructor TCadProject.Destroy;
 begin
-  paginas.Destroy;
+  pages.Destroy;
   inherited Destroy;
 end;
 
