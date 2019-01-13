@@ -3,71 +3,67 @@ unit CadDefinitions;
 interface
 uses
   Classes, SysUtils, fgl, MisUtils, Graphics,
-  frameVisorGraf, DefObjGraf, ObjGraficos, VisGraf3D;
+  frameCadView, DefObjGraf, ObjGraficos, VisGraf3D;
 type
-  Tunidades = (
-    tmuMetros,
-    tmuPies
+  TCadUnits = (
+    tmuMeters,
+    tmuFeet
   );
 
   //Tipo de objeto gráfico. Se sigue el estándar de Autocad
-  TCadTipObjGraf = (
+  TCadObjGraphTyp = (
     etyLine      //línea
    ,etyCircle    //círculo
    ,etyPolyline  //polilínea
    ,etyInsert    //bloque
   );
 
-  TCadObjGraf = class
-    nombre: string;
-    tipTab: TCadTipObjGraf;
-  end;
-  TCadObjetos_list = specialize TFPGObjectList<TCadObjGraf>;
-
-  TEveCambiaPerspec = procedure(vista: TfraVisorGraf) of object;
-  TCadProyecto = class;
+  TEveChangePerspec = procedure(vista: TfraCadView) of object;
+  TCadProject = class;
 
   { TCadPagina }
-  TCadPagina = class
+  {Representa a una página de un proyecto.}
+  TCadPage = class
   private
     procedure vistaCambiaPerspec;
     procedure vistaChangeState(VisState: TVisStateTyp);
     procedure vistaMouseMoveVirt(Shift: TShiftState; xp, yp: Integer; xv,
       yv, zv: Single);
   public
-    nombre     : string;
-    padre      : TCadProyecto;      //Referencia al objeto padre.
-    objetosGraf: TCadObjetos_list;  //Lista de elementos gráficos
-    objetos : TlistObjGraf; //Lista de objetos
+    name       : string;
+    parent     : TCadProject;      //Referencia al objeto padre.
+//    objetosGraf: TCadObjetos_list; //Lista de elementos gráficos
+    objects    : TObjGrafList;     //Lista de objetos
   public  //Manejo de las vistas
-    vista: TfraVisorGraf;   //una sola vista por el momento
-    OnCambiaPerspec: TEveCambiaPerspec;  //Cambia x_des,y_des,x_cam,y_cam,alfa,fi o zoom
+    view       : TfraCadView;     //Una sola vista por el momento
+    OnCambiaPerspec: TEveChangePerspec; //Cambia x_des,y_des,x_cam,y_cam,alfa,fi o zoom
     OnMouseMoveVirt: TEveMouseVisGraf;
-    OnChangeState: TEvChangeState;
+    OnChangeState  : TEvChangeState;
   public  //Inicialización
     constructor Create;
     destructor Destroy; override;
   end;
-  TCadPagina_list = specialize TFPGObjectList<TCadPagina>;
+  TCadPagina_list = specialize TFPGObjectList<TCadPage>;
 
-{ TCadProyecto }
-  TCadProyecto = class
+{ TCadProject }
+
+  TCadProject = class
   private
-    FActivePage: TCadPagina;
+    FActivePage: TCadPage;
     fModific  : boolean;   //indica si ha sido modificado
     procedure pag_ChangeState(VisState: TVisStateTyp);
-    procedure pag_CambiaPerspec(vista: TfraVisorGraf);
+    procedure pag_CambiaPerspec(vista: TfraCadView);
     procedure pag_MouseMoveVirt(Shift: TShiftState; xp, yp: Integer; xv,
       yv, zv: Single);
-    procedure SetActivePage(AValue: TCadPagina);
+    procedure SetActivePage(AValue: TCadPage);
     procedure SetModific(AValue: boolean);
   public
     nombre : string;
     creadoPor: string;
     notas    : string;
-    unidades : Tunidades;
+    unidades : TCadUnits;
     OnModific : procedure of object; //Proyecto modificado
-    OnCambiaPerspec: TEveCambiaPerspec;  //Cambia x_des, y_des, x_cam, alfa, ...
+    OnCambiaPerspec: TEveChangePerspec;  //Cambia x_des, y_des, x_cam, alfa, ...
     OnMouseMoveVirt: TEveMouseVisGraf;
     OnChangeState: TEvChangeState;
     property Modific: boolean read fModific write SetModific;
@@ -75,14 +71,14 @@ type
   public  //Campos de página
     paginas: TCadPagina_list; {Lista de páginas. Debe contener al menos una.}
     OnChangeActivePage: procedure of object;
-    Property ActivePage: TCadPagina read FActivePage write SetActivePage;
-    function IndexOfPage(pag: TCadPagina): integer;
-    function PrevPage(pag: TCadPagina): TCadPagina;
-    function NextPage(pag: TCadPagina): TCadPagina;
-    function PageByName(pagName: string): TCadPagina;
+    Property ActivePage: TCadPage read FActivePage write SetActivePage;
+    function IndexOfPage(pag: TCadPage): integer;
+    function PrevPage(pag: TCadPage): TCadPage;
+    function NextPage(pag: TCadPage): TCadPage;
+    function PageByName(pagName: string): TCadPage;
     procedure SetActivePageByName(pagName: string);
-    function AddPage: TCadPagina;
-    procedure RemovePage(pagName: TCadPagina);
+    function AddPage: TCadPage;
+    procedure RemovePage(pagName: TCadPage);
     procedure RemovePage(name: string);
     procedure HideAllPages;
   public  //Iniicialización
@@ -90,52 +86,50 @@ type
     destructor Destroy; override;
   end;
 
-  TCadProyectoPtr = ^TCadProyecto;
+  TCadProjectPtr = ^TCadProject;
 
 implementation
 
-procedure TCadPagina.vistaCambiaPerspec;
+procedure TCadPage.vistaCambiaPerspec;
 begin
-  if OnCambiaPerspec<>nil then OnCambiaPerspec(self.vista);   //identifica a la página
+  if OnCambiaPerspec<>nil then OnCambiaPerspec(self.view);   //identifica a la página
 end;
-procedure TCadPagina.vistaChangeState(VisState: TVisStateTyp);
+procedure TCadPage.vistaChangeState(VisState: TVisStateTyp);
 begin
   if OnChangeState<>nil then OnChangeState(VisState);
 end;
-procedure TCadPagina.vistaMouseMoveVirt(Shift: TShiftState; xp, yp: Integer;
+procedure TCadPage.vistaMouseMoveVirt(Shift: TShiftState; xp, yp: Integer;
   xv, yv, zv: Single);
 begin
   if OnMouseMoveVirt<>nil then OnMouseMoveVirt(Shift, xp, yp, xv, yv, 0);
 end;
-constructor TCadPagina.Create;
+constructor TCadPage.Create;
 begin
-  objetosGraf := TCadObjetos_list.Create(true);
-  objetos := TlistObjGraf.Create(true);   //contenedor
-  vista:= TfraVisorGraf.Create(nil, objetos);  //crea una vista
+  objects := TObjGrafList.Create(true);   //contenedor
+  view:= TfraCadView.Create(nil, objects);  //crea una vista
 
 //  vista.Parent := TabSheet1;
 //  vista.Visible:=true;
 //  vista.Align:=alClient;
-  vista.visEdi.v2d.backColor:=clBlack;
-  vista.visEdi.VerEjesCoor:=true;
-  vista.visEdi.VerPuntoGiro:=true;
-  vista.visEdi.VerCuadric:=true;
+  view.visEdi.v2d.backColor:=clBlack;
+  view.visEdi.VerEjesCoor:=true;
+  view.visEdi.VerPuntoGiro:=true;
+  view.visEdi.VerCuadric:=true;
 //  vista.VisEdiGraf.OnChangeView:=@fraMotEdicionmotEdiChangeView;
-  vista.OnCambiaPerspec:=@vistaCambiaPerspec;
-  vista.OnMouseMoveVirt:=@vistaMouseMoveVirt;
-  vista.OnChangeState:=@vistaChangeState;
+  view.OnCambiaPerspec:=@vistaCambiaPerspec;
+  view.OnMouseMoveVirt:=@vistaMouseMoveVirt;
+  view.OnChangeState:=@vistaChangeState;
 
 
 end;
-destructor TCadPagina.Destroy;
+destructor TCadPage.Destroy;
 begin
-  vista.Destroy;
-  objetos.Destroy;
-  objetosGraf.Destroy;
+  view.Destroy;
+  objects.Destroy;
   inherited Destroy;
 end;
-{ TCadProyecto }
-procedure TCadProyecto.SetModific(AValue: boolean);
+{ TCadProject }
+procedure TCadProject.SetModific(AValue: boolean);
 begin
   if fModific=AValue then Exit;
   fModific:=AValue;
@@ -143,28 +137,28 @@ begin
     if OnModific<>nil then OnModific;  //evento
   end;
 end;
-procedure TCadProyecto.pag_CambiaPerspec(vista: TfraVisorGraf);
+procedure TCadProject.pag_CambiaPerspec(vista: TfraCadView);
 {Se genera si alguna página cambia su perspectiva}
 begin
   if OnCambiaPerspec<>nil then OnCambiaPerspec(vista);
 end;
-procedure TCadProyecto.pag_ChangeState(VisState: TVisStateTyp);
+procedure TCadProject.pag_ChangeState(VisState: TVisStateTyp);
 begin
   if OnChangeState<>nil then OnChangeState(VisState);
 end;
-procedure TCadProyecto.pag_MouseMoveVirt(Shift: TShiftState; xp, yp: Integer;
+procedure TCadProject.pag_MouseMoveVirt(Shift: TShiftState; xp, yp: Integer;
   xv, yv, zv: Single);
 begin
   if OnMouseMoveVirt<>nil then OnMouseMoveVirt(Shift, xp, yp, xv, yv, zv);
 end;
-procedure TCadProyecto.GuardarArchivo;
+procedure TCadProject.GuardarArchivo;
 begin
 
 end;
 //Campos de página
-procedure TCadProyecto.SetActivePage(AValue: TCadPagina);
+procedure TCadProject.SetActivePage(AValue: TCadPage);
 var
-  pag: TCadPagina;
+  pag: TCadPage;
 begin
   if FActivePage=AValue then Exit;
   //Verifica si la página solicitada, existe
@@ -179,7 +173,7 @@ begin
   end;
   //No existe
 end;
-function TCadProyecto.IndexOfPage(pag: TCadPagina): integer;
+function TCadProject.IndexOfPage(pag: TCadPage): integer;
 {Devuelve el índice de una página dentro de la lista de páginas. Si no ubica a la página
  devuelve -1.}
 var
@@ -191,7 +185,7 @@ begin
   //No encontró
   exit(-1);
 end;
-function TCadProyecto.PrevPage(pag: TCadPagina): TCadPagina;
+function TCadProject.PrevPage(pag: TCadPage): TCadPage;
 {Devuelve la página anterior a una indicada. Si es la primera, devuelve la misma
  página. Si hay error, devuelve NIL.}
 var
@@ -205,7 +199,7 @@ begin
     exit(paginas[i-1]); //devuelve anterior
   end;
 end;
-function TCadProyecto.NextPage(pag: TCadPagina): TCadPagina;
+function TCadProject.NextPage(pag: TCadPage): TCadPage;
 {Devuelve la página siguiente a una indicada. Si es la última, devuelve la misma
  página. Si hay error, devuelve NIL.}
 var
@@ -219,37 +213,37 @@ begin
     exit(paginas[i+1]); //devuelve siguiente
   end;
 end;
-function TCadProyecto.PageByName(pagName: string): TCadPagina;
+function TCadProject.PageByName(pagName: string): TCadPage;
 {Devuelve la referencia a una página, dado su nombre. Si no encuentra la página,
 devuelve NIL.}
 var
-  pag: TCadPagina;
+  pag: TCadPage;
 begin
   for pag in paginas do begin
-    if pag.nombre = pagName then exit(pag);
+    if pag.name = pagName then exit(pag);
   end;
   exit(nil);
 end;
-procedure TCadProyecto.SetActivePageByName(pagName: string);
+procedure TCadProject.SetActivePageByName(pagName: string);
 var
-  pag: TCadPagina;
+  pag: TCadPage;
 begin
   for pag in paginas do begin
-    if pag.nombre = pagName then begin
+    if pag.name = pagName then begin
       ActivePage := pag;
       exit;
     end;
   end;
   //No existe
 end;
-function TCadProyecto.AddPage: TCadPagina;
+function TCadProject.AddPage: TCadPage;
 {Agrega una página al proyecto. Devuelve la referecnia a la pa´gina creada.}
 var
-  pag: TCadPagina;
+  pag: TCadPage;
 begin
-  pag := TCadPagina.Create;
-  pag.nombre:='Página'+IntToStr(paginas.Count+1);
-  pag.padre := self;
+  pag := TCadPage.Create;
+  pag.name:='Página'+IntToStr(paginas.Count+1);
+  pag.parent := self;
   pag.OnCambiaPerspec:=@pag_CambiaPerspec;
   pag.OnMouseMoveVirt:=@pag_MouseMoveVirt;
   pag.OnChangeState:=@pag_ChangeState;
@@ -257,7 +251,7 @@ begin
   Modific:=true;   //es un cambio
   Result := pag;
 end;
-procedure TCadProyecto.RemovePage(pagName: TCadPagina);
+procedure TCadProject.RemovePage(pagName: TCadPage);
 {Elimina la página indicada.}
 begin
   if paginas.Count=1 then begin
@@ -274,12 +268,12 @@ begin
   paginas.Remove(pagName);
   Modific:=true;   //es un cambio
 end;
-procedure TCadProyecto.RemovePage(name: string);
+procedure TCadProject.RemovePage(name: string);
 var
-  pag: TCadPagina;
+  pag: TCadPage;
 begin
   for pag in paginas do begin
-    if pag.nombre = name then begin
+    if pag.name = name then begin
       RemovePage(pag);
       exit;
     end;
@@ -287,28 +281,28 @@ begin
   //No encontró
   MsgExc('No existe la página: "%s"', [name]);
 end;
-procedure TCadProyecto.HideAllPages;
+procedure TCadProject.HideAllPages;
 {Pone las vistas de todas las páginas en visible := FALSE, de modo que no se mostrarán
 en el control asignado.}
 var
-  pag: TCadPagina;
+  pag: TCadPage;
 begin
   for pag in paginas do begin
-    pag.vista.Visible:=false;
+    pag.view.Visible:=false;
   end;
 end;
 
 //Iniicialización
-constructor TCadProyecto.Create;
+constructor TCadProject.Create;
 var
-  pag: TCadPagina;
+  pag: TCadPage;
 begin
   paginas:= TCadPagina_list.Create(true);
   //Crea una página
   pag := AddPage;
   ActivePage := pag;   //la pone como activa por defecto
 end;
-destructor TCadProyecto.Destroy;
+destructor TCadProject.Destroy;
 begin
   paginas.Destroy;
   inherited Destroy;

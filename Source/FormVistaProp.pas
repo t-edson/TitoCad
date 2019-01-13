@@ -4,7 +4,7 @@ unit FormVistaProp;
 interface
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ExtCtrls,
-  Buttons, StdCtrls, Spin, CadDefinitions, frameVisorGraf;
+  Buttons, StdCtrls, Spin, CadDefinitions, frameCadView;
 type
 
   { TfrmVistaProp }
@@ -22,9 +22,9 @@ type
     procedure btnAceptarClick(Sender: TObject);
     procedure btnAplicarClick(Sender: TObject);
   private
-    vista: TfraVisorGraf;
+    vista: TfraCadView;
   public
-    procedure Exec(vista0: TfraVisorGraf);
+    procedure Exec(vista0: TfraCadView);
   end;
 
 var
@@ -49,7 +49,7 @@ begin
   vista.visEdi.Refresh;
 end;
 
-procedure TfrmVistaProp.Exec(vista0: TfraVisorGraf);
+procedure TfrmVistaProp.Exec(vista0: TfraCadView);
 begin
   vista := vista0;
   chkVerEjes.Checked    := vista.visEdi.VerEjesCoor;

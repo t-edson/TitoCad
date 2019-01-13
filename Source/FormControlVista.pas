@@ -4,7 +4,7 @@ unit FormControlVista;
 interface
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
-  Spin, ExtCtrls, frameVisorGraf;
+  Spin, ExtCtrls, frameCadView;
 type
 
   { TfrmControlVista }
@@ -36,9 +36,9 @@ type
       Shift: TShiftState; X, Y: Integer);
     procedure Timer1Timer(Sender: TObject);
   private
-    fraEditor: TfraVisorGraf;
+    fraEditor: TfraCadView;
   public
-    procedure Exec(fraEditor0: TfraVisorGraf);
+    procedure Exec(fraEditor0: TfraCadView);
   end;
 
 var
@@ -97,7 +97,7 @@ begin
 //  btnLeerClick(self);  //actualiza
 end;
 
-procedure TfrmControlVista.Exec(fraEditor0: TfraVisorGraf);
+procedure TfrmControlVista.Exec(fraEditor0: TfraCadView);
 begin
   fraEditor:= fraEditor0;
   self.Show;

@@ -130,8 +130,8 @@ type
     xvPtr       : Single;    //Coordenadas cirtuales del puntero
     yvPtr       : Single;    //Coordenadas cirtuales del puntero
     zvPtr       : Single;    //Coordenadas cirtuales del puntero
-    objetos     : TlistObjGraf; //Referencia a la lista de objetos
-    seleccion   : TlistObjGraf;
+    objetos     : TObjGrafList; //Referencia a la lista de objetos
+    seleccion   : TObjGrafList;
     v2d         : TMotGraf;  //Salida gráfica
     incWheel    : Single;    //Incremento de ámgulo con la rueda del mouse
     VerEjesCoor : boolean;   //Para mostrar los ejec coordenados.
@@ -216,7 +216,7 @@ type
                             Shift: TShiftState; xp, yp: Integer; txt: string);
   public //Inicialización
     procedure RestoreState(prompt: string='');
-    constructor Create(PB0: TPaintBox; objectList: TlistObjGraf);
+    constructor Create(PB0: TPaintBox; objectList: TObjGrafList);
     destructor Destroy; override;
   end;
 
@@ -1470,7 +1470,7 @@ begin
   end;
   step := 0;   //Reinicia el step
 end;
-constructor TVisGraf3D.Create(PB0: TPaintBox; objectList: TlistObjGraf);
+constructor TVisGraf3D.Create(PB0: TPaintBox; objectList: TObjGrafList);
 {Metodo de inicialización de la clase Visor. Debe indicarse el PaintBox de
 salida donde se controlarán los objetos gráficos.
 y también debe recibir la lista de objetos a administrar.}
@@ -1491,7 +1491,7 @@ begin
   v2d := TMotGraf.Create(PBox);    //Inicia motor gráfico
   v2d.SetFont('MS Sans Serif');  //define tipo de letra
   v2d.OnChangeView:=@v2d_ChangeView;
-  seleccion := TlistObjGraf.Create(FALSE);  {crea lista sin posesión", porque la
+  seleccion := TObjGrafList.Create(FALSE);  {crea lista sin posesión", porque la
                                              administración la hará "objetos".}
   RestoreState;
   incWheel  := 0.1;

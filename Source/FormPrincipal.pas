@@ -4,7 +4,7 @@ interface
 uses
   Classes, SysUtils, Forms, Controls, Graphics, ExtCtrls, ActnList, Menus,
   StdCtrls, ComCtrls, LCLProc, LCLType, Buttons, MisUtils, FormConfig,
-  FrameCfgGeneral, CadDefinitions, frameVisorGraf, FormProject,
+  FrameCfgGeneral, CadDefinitions, frameCadView, FormProject,
   Globales, FrameExplorProyectos, FormControlVista, FormVistaProp,
   VisGraf3D, FrameComPanel;
 const
@@ -116,9 +116,9 @@ type
     procedure FormShow(Sender: TObject);
     procedure acHerConfigExecute(Sender: TObject);
   private
-    curProject  : TCadProyecto;
-    ExpProyPag  : TCadPagina;     //página seleccionada en el explorador de proyecto
-    ExpProyVis  : TfraVisorGraf;  //vista seleccionada en el explorador de proyecto
+    curProject  : TCadProject;
+    ExpProyPag  : TCadPage;     //página seleccionada en el explorador de proyecto
+    ExpProyVis  : TfraCadView;  //vista seleccionada en el explorador de proyecto
     panCommand  : TfraComPanel;
     procedure ConfigPropertiesChanged;
     procedure curProjectActivePagevistaSendMessage(msg: string);
@@ -128,10 +128,10 @@ type
     procedure curProject_MouseMoveVirt(Shift: TShiftState; xp, yp: Integer; xv,
       yv, zv: Single);
     procedure curProject_ChangeActivePage;
-    procedure fraExplorProy_ClickDerPagina(pag: TCadPagina);
-    procedure fraExplorProy_ClickDerProyec(pro: TCadProyecto);
-    procedure fraExplorProy_ClickDerVista(vis: TfraVisorGraf);
-    procedure curProject_ChangeView(vista: TfraVisorGraf);
+    procedure fraExplorProy_ClickDerPagina(pag: TCadPage);
+    procedure fraExplorProy_ClickDerProyec(pro: TCadProject);
+    procedure fraExplorProy_ClickDerVista(vis: TfraCadView);
+    procedure curProject_ChangeView(vista: TfraCadView);
     function MensajeGuardarCambios: integer;
     procedure panCommandComKeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);
@@ -151,16 +151,16 @@ implementation
 const
   BOT_CANCEL    = 3;
 
-procedure TfrmPrincipal.fraExplorProy_ClickDerProyec(pro: TCadProyecto);
+procedure TfrmPrincipal.fraExplorProy_ClickDerProyec(pro: TCadProject);
 begin
   PopupProject.PopUp;
 end;
-procedure TfrmPrincipal.fraExplorProy_ClickDerPagina(pag: TCadPagina);
+procedure TfrmPrincipal.fraExplorProy_ClickDerPagina(pag: TCadPage);
 begin
   ExpProyPag := pag;
   PopupPagina.PopUp;
 end;
-procedure TfrmPrincipal.fraExplorProy_ClickDerVista(vis: TfraVisorGraf);
+procedure TfrmPrincipal.fraExplorProy_ClickDerVista(vis: TfraCadView);
 begin
   ExpProyVis := vis;
   PopupVista.PopUp;
@@ -382,7 +382,7 @@ begin
 end;
 procedure TfrmPrincipal.curProject_ChangeState(VisState: TVisStateTyp);
 begin
-  StatusBar1.Panels[0].Text := curProject.ActivePage.vista.StateAsStr;
+  StatusBar1.Panels[0].Text := curProject.ActivePage.view.StateAsStr;
 end;
 procedure TfrmPrincipal.curProject_MouseMoveVirt(Shift: TShiftState; xp,
   yp: Integer; xv, yv, zv: Single);
@@ -392,7 +392,7 @@ begin
      'y=' + formatfloat('0.00', yv) + ' ' +
      'z=' + formatfloat('0.00', zv);
 end;
-procedure TfrmPrincipal.curProject_ChangeView(vista: TfraVisorGraf);
+procedure TfrmPrincipal.curProject_ChangeView(vista: TfraCadView);
 begin
   StatusBar1.Panels[1].Text :=
      'Alfa=' + formatfloat('0.00',  vista.Alfa) + ' ' +
@@ -404,18 +404,18 @@ end;
 procedure TfrmPrincipal.curProject_ChangeActivePage;
 {Se cambió la página activa del proyecto actual. Hay que mostrarlo en pantalla}
 var
-  ap: TCadPagina;
+  ap: TCadPage;
 begin
   if curProject=nil then exit;
   //Enchufa el visor al PageControl1, para mostralo;
   curProject.HideAllPages;   {oculta primero todas las páginas porque puede que alguna
                               ya haya puesto su "Parent" en eset visor.}
   ap := curProject.ActivePage;
-  ap.vista.Parent := TabSheet1;   //Lo coloca aquí
-  ap.vista.Left:=Random(200);
-  ap.vista.Top:=Random(200);
-  ap.vista.Align := alClient;
-  ap.vista.Visible := true;  //lo hace visible
+  ap.view.Parent := TabSheet1;   //Lo coloca aquí
+  ap.view.Left:=Random(200);
+  ap.view.Top:=Random(200);
+  ap.view.Align := alClient;
+  ap.view.Visible := true;  //lo hace visible
 end;
 function ComponentFromAction(Sender: Tobject): TComponent;
 {Devuelve el componente que disparó una acción. Si no l oubica, devuelve NIL}
@@ -442,7 +442,7 @@ begin
 //if txtAnswer = '' then exit;
   txtAnswer := UpCase(txtAnswer);  //Convierte a mayúscula
   //Comando introducido.
-  curProject.ActivePage.vista.ExecuteCommand(txtAnswer);
+  curProject.ActivePage.view.ExecuteCommand(txtAnswer);
 end;
 procedure TfrmPrincipal.panCommandComKeyDown(Sender: TObject; var Key: Word;
   Shift: TShiftState);
@@ -452,7 +452,7 @@ begin
   if curProject = nil then exit;
   if key = VK_ESCAPE then begin
     //Covierte tecla en comando
-    curProject.ActivePage.vista.ExecuteCommand('CANCEL');
+    curProject.ActivePage.view.ExecuteCommand('CANCEL');
   end;
 end;
 procedure TfrmPrincipal.curProjectActivePagevistaSendMessage(msg: string);
@@ -467,12 +467,12 @@ end;
 ///////////////////////////// Acciones ///////////////////////////////
 procedure TfrmPrincipal.acArcNueProExecute(Sender: TObject);
 var
-  tmpPresp: TCadProyecto;
+  tmpPresp: TCadProject;
 begin
   //verifica si hay que guardar cambios
   if MensajeGuardarCambios = BOT_CANCEL then exit;
   //Crea proyecto temporal
-  tmpPresp := TCadProyecto.Create;
+  tmpPresp := TCadProject.Create;
   if not frmProject.ExecNew(tmpPresp) then begin
     //se canceló
     tmpPresp.Destroy;  //no nos va a servir
@@ -486,10 +486,10 @@ begin
   curProject.OnChangeActivePage:=@curProject_ChangeActivePage;
   curProject.OnMouseMoveVirt   :=@curProject_MouseMoveVirt;
   curProject.OnChangeState     :=@curProject_ChangeState;
-  curProject.ActivePage.vista.OnSendMessage:= @curProjectActivePagevistaSendMessage;
-  curProject.ActivePage.vista.OnSendPrompt := @curProjectActivePagevistaSendPrompt;
+  curProject.ActivePage.view.OnSendMessage:= @curProjectActivePagevistaSendMessage;
+  curProject.ActivePage.view.OnSendPrompt := @curProjectActivePagevistaSendPrompt;
   curProject_ChangeActivePage;  //para refrescar en su visor
-  curProject.ActivePage.vista.InicVista;  //inicia los ejes
+  curProject.ActivePage.view.InicVista;  //inicia los ejes
   //curProject.Modific:=true;
   curProject.guardarArchivo;
 //  menuRec.AgregArcReciente(curProject.GenerarNombreArch);  //Agrega archivo reciente
@@ -515,14 +515,14 @@ end;
 procedure TfrmPrincipal.acVerConVistaExecute(Sender: TObject);
 begin
   if curProject = nil then exit;
-  frmControlVista.Exec(curProject.ActivePage.vista);
+  frmControlVista.Exec(curProject.ActivePage.view);
 end;
 procedure TfrmPrincipal.acVerVisSupExecute(Sender: TObject);
 begin
   if curProject=nil then exit;
-  curProject.ActivePage.vista.Alfa:=0;
-  curProject.ActivePage.vista.Fi:=0;
-  curProject.ActivePage.vista.visEdi.Refresh;
+  curProject.ActivePage.view.Alfa:=0;
+  curProject.ActivePage.view.Fi:=0;
+  curProject.ActivePage.view.visEdi.Refresh;
 end;
 procedure TfrmPrincipal.acVisPropiedExecute(Sender: TObject);
 begin
@@ -549,32 +549,32 @@ begin
 end;
 procedure TfrmPrincipal.acPagAgrLinExecute(Sender: TObject);  //Agrega línea
 var
-  pag: TCadPagina;
+  pag: TCadPage;
 begin
   if curProject=nil then exit;
   {Se verifica si la acción viene del explorador de proyecto, porque en ese caso, para
   darle la posibilidad de tomar acciones, sobre páginas no activas}
   if ComponentFromAction(Sender) = PopupPagina then pag := ExpProyPag
   else pag := curProject.ActivePage;
-  pag.vista.ExecuteCommand('LINE');
+  pag.view.ExecuteCommand('LINE');
   Refrescar;
 end;
 procedure TfrmPrincipal.acProInsRectanExecute(Sender: TObject);
 var
-  pag: TCadPagina;
+  pag: TCadPage;
 begin
   if curProject=nil then exit;
   {Se verifica si la acción viene del explorador de proyecto, porque en ese caso, para
   darle la posibilidad de tomar acciones, sobre páginas no activas}
   if ComponentFromAction(Sender) = PopupPagina then pag := ExpProyPag
   else pag := curProject.ActivePage;
-  pag.vista.ExecuteCommand('RECTANGLE');
+  pag.view.ExecuteCommand('RECTANGLE');
   Refrescar;
 end;
 procedure TfrmPrincipal.acPagElimExecute(Sender: TObject);
 begin
   if curProject = nil then exit;
-  if MsgYesNo('¿Eliminar página "%s"?', [curProject.ActivePage.nombre]) <> 1 then exit;
+  if MsgYesNo('¿Eliminar página "%s"?', [curProject.ActivePage.name]) <> 1 then exit;
   curProject.RemovePage(curProject.ActivePage);
   Refrescar;
 end;

@@ -198,7 +198,7 @@ type
     destructor Destroy; override;
   end;
 
-  TlistObjGraf = specialize TFPGObjectList<TObjGraf>;
+  TObjGrafList = specialize TFPGObjectList<TObjGraf>;
 
 implementation
 const

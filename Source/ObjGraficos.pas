@@ -37,11 +37,11 @@ private
   procedure PtoCtrl1_Move(xvTar, yvTar, dx, dy: Single);
   procedure PtoCtrlM_Move(xvTar, yvTar, dxv, dyv: Single);
 public  //Campos equivalentes a los de una entidad DXF
-  etype: TDXFentType;   //tipo de entidad
-  idDxf: string;        //identificador de la entidad
-  layer: string;
-  color: string;
-  style: string;
+  etype : TDXFentType;   //Tipo de entidad
+  idDxf : string;        //Identificador de la entidad
+  layer : string;
+  color : string;
+  style : string;
   isComplex: boolean;
   polyFlag: integer; {Bandera para polilíneas. Mapa de bits, cero por defecto:
     1 = This is a closed polyline (or a polygon mesh closed in the M direction).
@@ -52,9 +52,9 @@ public  //Campos equivalentes a los de una entidad DXF
     32 = The polygon mesh is closed in the N direction.
     64 = The polyline is a polyface mesh.
     128 = The linetype pattern is generated continuously around the vertices of this polyline.}
-    //propiedades gráficas
-  P0: TMotPoint;
-  P1: TMotPoint;
+  //Propiedades gráficas
+  P0    : TMotPoint;
+  P1    : TMotPoint;
   radius: double;
   vertexs: TObjGrafDXF_list;   {Lista de Vertex. Solo se instancia para objetos
                                complejos. OJO!!! Es muy pesado guardar una lista de
