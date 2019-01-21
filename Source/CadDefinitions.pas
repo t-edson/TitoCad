@@ -2,20 +2,12 @@ unit CadDefinitions;
 {$mode objfpc}{$H+}
 interface
 uses
-  Classes, SysUtils, fgl, MisUtils, Graphics,
-  frameCadView, DefObjGraf, ObjGraficos, VisGraf3D;
+  Classes, SysUtils, fgl, MisUtils, DXFya, Graphics, LCLProc,
+  frameCadView, DefObjGraf, ObjGraficos, EditionMot3D;
 type
   TCadUnits = (
     tmuMeters,
     tmuFeet
-  );
-
-  //Tipo de objeto gráfico. Se sigue el estándar de Autocad
-  TCadObjGraphTyp = (
-    etyLine      //línea
-   ,etyCircle    //círculo
-   ,etyPolyline  //polilínea
-   ,etyInsert    //bloque
   );
 
   TEveChangePerspec = procedure(vista: TfraCadView) of object;
@@ -50,6 +42,7 @@ type
   private
     FActivePage: TCadPage;
     fModific  : boolean;   //indica si ha sido modificado
+    dxfFile: TDXFfile;
     procedure pag_ChangeState(VisState: TVisStateTyp);
     procedure pag_CambiaPerspec(vista: TfraCadView);
     procedure pag_MouseMoveVirt(Shift: TShiftState; xp, yp: Integer; xv,
@@ -67,7 +60,9 @@ type
     OnMouseMoveVirt: TEveMouseVisGraf;
     OnChangeState: TEvChangeState;
     property Modific: boolean read fModific write SetModific;
-    procedure GuardarArchivo;
+    procedure LoadFile;
+    procedure LoadDXFFile(fileName: string);
+    procedure SaveFile;
   public  //Campos de página
     pages  : TCadPagina_list; {Lista de páginas. Debe contener al menos una.}
     OnChangeActivePage: procedure of object;
@@ -111,14 +106,14 @@ begin
 //  vista.Parent := TabSheet1;
 //  vista.Visible:=true;
 //  vista.Align:=alClient;
-  view.visEdi.v2d.backColor:=clBlack;
-  view.visEdi.VerEjesCoor:=true;
-  view.visEdi.VerPuntoGiro:=true;
-  view.visEdi.VerCuadric:=true;
+  view.ediMot.v2d.backColor:=clBlack;
+  view.ediMot.VerEjesCoor:=true;
+  view.ediMot.VerPuntoGiro:=true;
+  view.ediMot.VerCuadric:=true;
 //  vista.VisEdiGraf.OnChangeView:=@fraMotEdicionmotEdiChangeView;
   view.OnCambiaPerspec:=@vistaCambiaPerspec;
   view.OnMouseMoveVirt:=@vistaMouseMoveVirt;
-  view.OnChangeState:=@vistaChangeState;
+  view.OnChangeState := @vistaChangeState;
 
 
 end;
@@ -137,6 +132,67 @@ begin
     if OnModific<>nil then OnModific;  //evento
   end;
 end;
+procedure TCadProject.LoadFile;
+begin
+
+end;
+procedure TCadProject.LoadDXFFile(fileName: string);
+{Carga un archivo DXF}
+var
+  ent: TDXFentitie;
+  lin, ver: TObjGrafDXF;
+  i: Integer;
+begin
+  dxfFile.ReadFromFile(fileName);
+  if dxfFile.Er<>'' then MsgErr(dxfFile.Er);
+  //Deja solo una página
+  while pages.Count>1 do begin
+    RemovePage(pages[0]);
+  end;
+  //Limpia página actual
+  ActivePage.view.RemoveAllObjects;
+  //Crea objetos para representar a las entidades
+  for ent in dxfFile.entities do begin
+    case ent.etype of
+    etyLine: begin
+//        v2d.Linea(x + ent.x0, y + ent.y0,
+//                  x + ent.x1, y + ent.y1);
+
+        lin := TObjGrafDXF.Create(ActivePage.view.ediMot.v2d);
+        lin.etype := ent.etype;
+        lin.SetP0(ent.x0, ent.y0, ent.z0);
+        lin.SetP1(ent.x1, ent.y1, ent.z1);
+        ActivePage.view.ediMot.AddObjGraph(lin);
+        ActivePage.view.ediMot.Refresh;
+      end;
+    etyPolyline: begin
+        lin := TObjGrafDXF.Create(ActivePage.view.ediMot.v2d);
+        lin.etype := ent.etype;
+        lin.SetP0(ent.x0, ent.y0, ent.z0);
+        lin.SetP1(ent.x1, ent.y1, ent.z1);
+        lin.vertexs := TObjGrafDXF_list.Create(true);
+        lin.polyFlag := ent.polyFlag;
+        for i := 0 to ent.vertexs.Count-1 do begin
+          ver := TObjGrafDXF.Create(ActivePage.view.ediMot.v2d);
+//          ver.Locate(ent.vertexs[i].x0,
+//                     ent.vertexs[i].y0,
+//                     ent.vertexs[i].z0);
+          ver.SetP0(ent.vertexs[i].x0,ent.vertexs[i].y0,ent.vertexs[i].z0);
+          ver.SetP1(ent.vertexs[i].x1,ent.vertexs[i].y1,ent.vertexs[i].z1);
+//debugln('P0=%f,%f,%f', [ver.P0.x, ver.P0.y, ver.P0.x]);
+//debugln('P1=%f,%f,%f', [ver.P1.x, ver.P1.y, ver.P1.x]);
+          lin.vertexs.Add(ver);
+        end;
+        ActivePage.view.ediMot.AddObjGraph(lin);
+        ActivePage.view.ediMot.Refresh;
+      end;
+    end;
+  end;
+end;
+procedure TCadProject.SaveFile;
+begin
+
+end;
 procedure TCadProject.pag_CambiaPerspec(vista: TfraCadView);
 {Se genera si alguna página cambia su perspectiva}
 begin
@@ -150,10 +206,6 @@ procedure TCadProject.pag_MouseMoveVirt(Shift: TShiftState; xp, yp: Integer;
   xv, yv, zv: Single);
 begin
   if OnMouseMoveVirt<>nil then OnMouseMoveVirt(Shift, xp, yp, xv, yv, zv);
-end;
-procedure TCadProject.GuardarArchivo;
-begin
-
 end;
 //Campos de página
 procedure TCadProject.SetActivePage(AValue: TCadPage);
@@ -291,12 +343,12 @@ begin
     pag.view.Visible:=false;
   end;
 end;
-
 //Iniicialización
 constructor TCadProject.Create;
 var
   pag: TCadPage;
 begin
+  dxfFile:= TDXFfile.Create;
   pages:= TCadPagina_list.Create(true);
   //Crea una página
   pag := AddPage;
@@ -305,6 +357,7 @@ end;
 destructor TCadProject.Destroy;
 begin
   pages.Destroy;
+  dxfFile.Destroy;
   inherited Destroy;
 end;
 

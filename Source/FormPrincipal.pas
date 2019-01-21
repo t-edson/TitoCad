@@ -3,10 +3,10 @@ unit FormPrincipal;
 interface
 uses
   Classes, SysUtils, Forms, Controls, Graphics, ExtCtrls, ActnList, Menus,
-  StdCtrls, ComCtrls, LCLProc, LCLType, Buttons, MisUtils, FormConfig,
+  StdCtrls, ComCtrls, LCLProc, LCLType, Buttons, Dialogs, MisUtils, FormConfig,
   FrameCfgGeneral, CadDefinitions, frameCadView, FormProject,
-  Globales, FrameExplorProyectos, FormControlVista, FormVistaProp,
-  VisGraf3D, FrameComPanel;
+  Globales, FrameExplorProyectos, FormControlVista, FormViewProp,
+  EditionMot3D, FrameComPanel, FormPageProp;
 const
   NUM_CUAD = 20;
   ZOOM_INI = 12;
@@ -73,6 +73,7 @@ type
     MenuItem7: TMenuItem;
     MenuItem8: TMenuItem;
     MenuItem9: TMenuItem;
+    OpenDialog1: TOpenDialog;
     PageControl1: TPageControl;
     PopupVista: TPopupMenu;
     PopupPagina: TPopupMenu;
@@ -96,12 +97,14 @@ type
     ToolButton7: TToolButton;
     ToolButton8: TToolButton;
     ToolButton9: TToolButton;
+    procedure acArcAbrirExecute(Sender: TObject);
     procedure acArcCerrarExecute(Sender: TObject);
     procedure acArcGuarExecute(Sender: TObject);
     procedure acArcNueProExecute(Sender: TObject);
     procedure acArcSalirExecute(Sender: TObject);
     procedure acPagAgrLinExecute(Sender: TObject);
     procedure acPagElimExecute(Sender: TObject);
+    procedure acPagPropiedExecute(Sender: TObject);
     procedure acProAgrPagExecute(Sender: TObject);
     procedure acProInsPolylinExecute(Sender: TObject);
     procedure acProInsRectanExecute(Sender: TObject);
@@ -253,7 +256,7 @@ begin
   if (curProject <> nil) and curProject.Modific then begin
     rpta := MsgYesNoCancel('El presupuesto ha sido modificado, ¿Guardar cambios?');
     if rpta = 3 then exit(BOT_CANCEL);
-    if rpta = 1 then curProject.GuardarArchivo;
+    if rpta = 1 then curProject.SaveFile;
   end;
   Result := 0;   //valor por defecto
 end;
@@ -446,8 +449,6 @@ begin
 end;
 procedure TfrmPrincipal.panCommandComKeyDown(Sender: TObject; var Key: Word;
   Shift: TShiftState);
-var
-  lin: String;
 begin
   if curProject = nil then exit;
   if key = VK_ESCAPE then begin
@@ -491,7 +492,7 @@ begin
   curProject_ChangeActivePage;  //para refrescar en su visor
   curProject.ActivePage.view.InicVista;  //inicia los ejes
   //curProject.Modific:=true;
-  curProject.guardarArchivo;
+  curProject.SaveFile;
 //  menuRec.AgregArcReciente(curProject.GenerarNombreArch);  //Agrega archivo reciente
   Refrescar;
 end;
@@ -508,6 +509,12 @@ begin
   curProject := nil;   //lo marca como cerrado
   Refrescar;
 end;
+procedure TfrmPrincipal.acArcAbrirExecute(Sender: TObject);
+begin
+  if curProject = nil then exit;  //no hay proyecto abierto
+  if not OpenDialog1.Execute then exit;
+  curProject.LoadDXFFile(OpenDialog1.FileName);
+end;
 procedure TfrmPrincipal.acArcSalirExecute(Sender: TObject);
 begin
   Self.Close;
@@ -522,11 +529,11 @@ begin
   if curProject=nil then exit;
   curProject.ActivePage.view.Alfa:=0;
   curProject.ActivePage.view.Fi:=0;
-  curProject.ActivePage.view.visEdi.Refresh;
+  curProject.ActivePage.view.ediMot.Refresh;
 end;
 procedure TfrmPrincipal.acVisPropiedExecute(Sender: TObject);
 begin
-  frmVistaProp.Exec(ExpProyVis);
+  frmViewProp.Exec(ExpProyVis);
 end;
 procedure TfrmPrincipal.acProAgrPagExecute(Sender: TObject);
 begin
@@ -577,6 +584,10 @@ begin
   if MsgYesNo('¿Eliminar página "%s"?', [curProject.ActivePage.name]) <> 1 then exit;
   curProject.RemovePage(curProject.ActivePage);
   Refrescar;
+end;
+procedure TfrmPrincipal.acPagPropiedExecute(Sender: TObject);
+begin
+  frmPageProp.Exec(ExpProyPag);
 end;
 
 procedure TfrmPrincipal.acHerConfigExecute(Sender: TObject);

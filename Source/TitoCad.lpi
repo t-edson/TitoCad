@@ -64,7 +64,7 @@
         <PackageName Value="LCL"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="17">
+    <Units Count="18">
       <Unit0>
         <Filename Value="TitoCad.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -152,9 +152,10 @@
         <IsPartOfProject Value="True"/>
       </Unit14>
       <Unit15>
-        <Filename Value="FormVistaProp.pas"/>
+        <Filename Value="FormViewProp.pas"/>
         <IsPartOfProject Value="True"/>
-        <ComponentName Value="frmVistaProp"/>
+        <ComponentName Value="frmViewProp"/>
+        <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
       </Unit15>
       <Unit16>
@@ -164,6 +165,13 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Frame"/>
       </Unit16>
+      <Unit17>
+        <Filename Value="FormPageProp.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="frmPageProp"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+      </Unit17>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
@@ -174,7 +182,7 @@
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
-      <OtherUnitFiles Value="..\..\_Librerias\MisUtils-0.6;..\..\_Librerias\SynFacilUtils-1.21;..\..\_Librerias\MiConfig-0.4;..\..\_Librerias\MotGraf-0.2;..\..\_Librerias\UtilsGrilla-0.8;ConfigFrames"/>
+      <OtherUnitFiles Value="..\..\_Librerias\MisUtils-0.6;..\..\_Librerias\SynFacilUtils-1.21;..\..\_Librerias\MiConfig-0.4;..\..\_Librerias\MotGraf-0.2;..\..\_Librerias\UtilsGrilla-0.8;..\..\_Librerias\DXFya-0.0;ConfigFrames"/>
       <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
     <Parsing>

@@ -186,6 +186,7 @@ object frmPrincipal: TfrmPrincipal
       Category = 'Arc'
       Caption = '&Abrir'
       ImageIndex = 3
+      OnExecute = acArcAbrirExecute
     end
     object acArcGuar: TAction
       Category = 'Arc'
@@ -251,6 +252,7 @@ object frmPrincipal: TfrmPrincipal
       Category = 'Pag'
       Caption = '&Propiedades'
       ImageIndex = 32
+      OnExecute = acPagPropiedExecute
     end
     object acVisPropied: TAction
       Category = 'Vis'
@@ -6159,5 +6161,9 @@ object frmPrincipal: TfrmPrincipal
     object MenuItem30: TMenuItem
       Action = acVisPropied
     end
+  end
+  object OpenDialog1: TOpenDialog
+    left = 488
+    top = 119
   end
 end

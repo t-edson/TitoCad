@@ -1,3 +1,10 @@
+Titocad 0.2.8
+=============
+Se continúa con la depuración del código, eliminando definiciones redundantes o no usadas.
+Se incluye la librería DXFya y se integra en el diseño.
+Se incluye la opción para cargar archivos DXF simples. Aún no operativo.
+ 
+
 Titocad 0.2.7
 =============
 Se cambian los nombres de algunos métodos en la unidad DefObjGraf, a su versión en

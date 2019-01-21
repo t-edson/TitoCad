@@ -181,7 +181,7 @@ type
     procedure Delete;        //Método para eliminar el objeto
     procedure Mover(xr, yr : Integer; nobjetos : Integer); virtual;
     function LoSelecciona(xr, yr:integer): Boolean; virtual;
-    procedure Dibujar; virtual;  //Dibuja el objeto gráfico
+    procedure Draw; virtual;  //Dibuja el objeto gráfico
     procedure StartMove(xr, yr : Integer);
     procedure MouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState;
        xp, yp: Integer); virtual;  //Metodo que funciona como evento mouse_down
@@ -414,7 +414,7 @@ begin
       if SelecPtoControl(xr,yr) <> NIL then LoSelecciona := True;
     end;
 End;
-procedure TObjGraph.Dibujar;
+procedure TObjGraph.Draw;
 const tm = 3;
 var
   pdc  : TPtoCtrl;

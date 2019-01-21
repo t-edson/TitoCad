@@ -9,8 +9,7 @@ unit frameCadView;
 {$mode objfpc}{$H+}
 interface
 uses
-  Classes, Forms, ExtCtrls,
-  VisGraf3D, DefObjGraf;
+  Classes, Forms, ExtCtrls, EditionMot3D, DefObjGraf;
 type
   TOnObjetosElim = procedure of object;
   {Evento para movimiento del Mouse. Notar que además de las coordenaadas del ratón,
@@ -47,15 +46,15 @@ type
     procedure visEdi_SendMessage(msg: string);
   public
     objects : TObjGraphList; //Referencia a Lista de objetos
-    visEdi  : TVisGraf3D;   //Motor de edición  (La idesa es que pueda usarse más de uno)
-    Modif   : Boolean;      //bandera para indicar Diagrama Modificado
+    ediMot  : TEditionMot3D; //Motor de edición  (La idesa es que pueda usarse más de uno)
+    Modif   : Boolean;       //Bandera para indicar Diagrama Modificado
     OnObjetosElim  : TOnObjetosElim;   //cuando se elminan uno o más objetos
     OnCambiaPerspec: procedure of object; //Cambia x_des,y_des,x_cam,y_cam,alfa,fi o zoom
     OnMouseMoveVirt: TEveMouseVisGraf;
     OnChangeState  : TEvChangeState;  //Cambia el estado del Visor
     OnSendMessage  : TEvSendMessage;  //Envía un mensaje. Usado para respuesta a comandos
     OnSendPrompt   : TEvSendMessage;  //Envía una petición de comando.
-    procedure EliminarTodosObj;
+    procedure RemoveAllObjects;
   public //Propiedades reflejadas
     property xDes: integer read GetxDes write SetxDes;
     property yDes: integer read GetyDes write SetyDes;
@@ -75,60 +74,60 @@ type
 implementation
 {$R *.lfm}
 
-procedure TfraCadView.EliminarTodosObj;
+procedure TfraCadView.RemoveAllObjects;
 //Elimina todos los objetos gráficos existentes
 begin
   if objects.Count=0 then exit;  //no hay qué eliminar
   //elimina
-  visEdi.UnselectAll();  //por si acaso hay algun simbolo seleccionado
+  ediMot.UnselectAll();  //por si acaso hay algun simbolo seleccionado
   objects.Clear;          //limpia la lista de objects
-  visEdi.RestoreState;
+  ediMot.RestoreState;
   Modif := true;          //indica que se modificó
   if OnObjetosElim<>nil then OnObjetosElim;
 End;
 function TfraCadView.GetxDes: integer;
 begin
-  Result := visEdi.v2d.x_des;
+  Result := ediMot.v2d.x_des;
 end;
 procedure TfraCadView.SetxDes(AValue: integer);
 begin
-  visEdi.v2d.x_des:=AValue;
+  ediMot.v2d.x_des:=AValue;
 end;
 function TfraCadView.GetyDes: integer;
 begin
-  Result := visEdi.v2d.y_des;
+  Result := ediMot.v2d.y_des;
 end;
 procedure TfraCadView.SetyDes(AValue: integer);
 begin
-  visEdi.v2d.y_des:=AValue;
+  ediMot.v2d.y_des:=AValue;
 end;
 function TfraCadView.GetxCam: Single;
 begin
-  Result := visEdi.v2d.x_cam;
+  Result := ediMot.v2d.x_cam;
 end;
 procedure TfraCadView.SetxCam(AValue: Single);
 begin
-  visEdi.v2d.x_cam:=AValue;
+  ediMot.v2d.x_cam:=AValue;
 end;
 function TfraCadView.GetyCam: Single;
 begin
-  Result := visEdi.v2d.y_cam;
+  Result := ediMot.v2d.y_cam;
 end;
 procedure TfraCadView.SetyCam(AValue: Single);
 begin
-  visEdi.v2d.y_cam:=AValue;
+  ediMot.v2d.y_cam:=AValue;
 end;
 function TfraCadView.GetZoom: Single;
 begin
-  Result := visEdi.v2d.Zoom;
+  Result := ediMot.v2d.Zoom;
 end;
 procedure TfraCadView.ExecuteCommand(command: string);
 begin
-  visEdi.ExecuteCommand(command);
+  ediMot.ExecuteCommand(command);
 end;
 function TfraCadView.StateAsStr: string;
 begin
-  Result := visEdi.StateAsStr;
+  Result := ediMot.StateAsStr;
 end;
 procedure TfraCadView.motEdi_ChangeView;
 begin
@@ -142,7 +141,7 @@ begin
 end;
 procedure TfraCadView.SetZoom(AValue: Single);
 begin
-  visEdi.v2d.Zoom:=AValue;
+  ediMot.v2d.Zoom:=AValue;
 end;
 procedure TfraCadView.visEdi_ChangeState(VisState: TVisStateTyp);
 begin
@@ -153,7 +152,7 @@ procedure TfraCadView.visEdi_MouseMove(Sender: TObject; Shift: TShiftState; X,
 var
   xv, yv: Single;
 begin
-  visEdi.v2d.XYvirt(X, Y, 0, xv, yv);
+  ediMot.v2d.XYvirt(X, Y, 0, xv, yv);
   if OnMouseMoveVirt<>nil then OnMouseMoveVirt(Shift, X, Y, xv, yv, 0);
 end;
 procedure TfraCadView.visEdi_SendMessage(msg: string);
@@ -167,48 +166,48 @@ end;
 
 function TfraCadView.GetAlfa: Single;
 begin
-  Result := visEdi.v2d.Alfa;
+  Result := ediMot.v2d.Alfa;
 end;
 procedure TfraCadView.SetAlfa(AValue: Single);
 begin
-  visEdi.v2d.Alfa := AValue;
+  ediMot.v2d.Alfa := AValue;
 end;
 function TfraCadView.GetFi: Single;
 begin
-  REsult := visEdi.v2d.Fi;
+  REsult := ediMot.v2d.Fi;
 end;
 procedure TfraCadView.SetFi(AValue: Single);
 begin
-  visEdi.v2d.Fi := AValue;
+  ediMot.v2d.Fi := AValue;
 end;
 procedure TfraCadView.InicVista;
 {Ubica la perspectiva y los ejes, de forma que el origen (0,0) aparezza en la
 esquina inferior izquierda. Se debe llamar cuando ya el frame tenga su tamaño final}
 begin
-  visEdi.v2d.Alfa:=0;
-  visEdi.v2d.Fi:=0;
-  visEdi.v2d.Zoom:=0.5;
+  ediMot.v2d.Alfa:=0;
+  ediMot.v2d.Fi:=0;
+  ediMot.v2d.Zoom:=0.5;
   //Ubica (0,0) a 10 pixeles del ángulo inferior izquierdo
-  visEdi.v2d.x_cam:=((PaintBox1.Width div 2)-10)/visEdi.v2d.Zoom;
-  visEdi.v2d.y_cam:=((PaintBox1.Height div 2)-10)/visEdi.v2d.Zoom;
-  visEdi.RestoreState;  //Para iniciar comando
+  ediMot.v2d.x_cam:=((PaintBox1.Width div 2)-10)/ediMot.v2d.Zoom;
+  ediMot.v2d.y_cam:=((PaintBox1.Height div 2)-10)/ediMot.v2d.Zoom;
+  ediMot.RestoreState;  //Para iniciar comando
 end;
 constructor TfraCadView.Create(AOwner: TComponent; ListObjGraf: TObjGraphList);
 begin
   inherited Create(AOwner);
   objects := ListObjGraf;  //recibe lista de objects
   //objects:= TlistObjGraf.Create(true);  //lista de objects
-  visEdi := TVisGraf3D.Create(PaintBox1, objects);
-  visEdi.OnModif      :=@visEdi_Modif;
-  visEdi.OnChangeView :=@motEdi_ChangeView;
-  visEdi.OnMouseMove  :=@visEdi_MouseMove;
-  visEdi.OnChangeState:=@visEdi_ChangeState;
-  visEdi.OnSendMessage:=@visEdi_SendMessage;
-  visEdi.onSendPrompt := @visEdiSendPrompt;
+  ediMot := TEditionMot3D.Create(PaintBox1, objects);
+  ediMot.OnModif      :=@visEdi_Modif;
+  ediMot.OnChangeView :=@motEdi_ChangeView;
+  ediMot.OnMouseMove  :=@visEdi_MouseMove;
+  ediMot.OnChangeState:=@visEdi_ChangeState;
+  ediMot.OnSendMessage:=@visEdi_SendMessage;
+  ediMot.onSendPrompt := @visEdiSendPrompt;
 end;
 destructor TfraCadView.Destroy;
 begin
-  visEdi.Destroy;
+  ediMot.Destroy;
   //objetos.Destroy;
   inherited;
 end;
