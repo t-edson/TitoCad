@@ -399,7 +399,7 @@ begin
   //Explora objetos priorizando los que están encima
   For i := seleccion.Count-1 downTo 0 do begin
     s := seleccion[i];
-    If not s.SelLocked and s.LoSelecciona(xp, yp) Then begin
+    If not s.SelLocked and s.IsSelectedBy(xp, yp) Then begin
         Result:= s;
         Exit;
     End;
@@ -407,7 +407,7 @@ begin
   //Explora objetos priorizando los que están encima
   For i := objetos.Count-1 downTo 0 do begin
     s := objetos[i];
-    If not s.SelLocked and s.LoSelecciona(xp, yp) Then begin
+    If not s.SelLocked and s.IsSelectedBy(xp, yp) Then begin
         Result := s;
         Exit;
     End;
@@ -465,7 +465,7 @@ begin
     If s = NIL Then begin  //No hay ninguno por marcar
       If ultMarcado <> NIL Then begin
             //Si ya había uno marcado, se actualiza el dibujo y la bandera
-            ultMarcado.Marcado := False;  //se desmarca
+            ultMarcado.Marked := False;  //se desmarca
             ultMarcado := NIL;
             Refresh;
         End;
@@ -475,15 +475,15 @@ begin
       If ultMarcado = NIL Then begin
          //No había ninguno marcado
          ultMarcado := s;      //guarda
-         s.Marcado := True;    //lo marca
+         s.Marked:= True;    //lo marca
          Refresh;            //y se dibuja
       end Else begin  //ya había uno marcado
            If ultMarcado = s Then  //es el mismo
                //no se hace nada
            Else begin    //había otro marcado
-               ultMarcado.Marcado := False;  //se desmarca
+               ultMarcado.Marked:= False;  //se desmarca
                ultMarcado := s ;   //actualiza
-               s.Marcado := True;
+               s.Marked:= True;
                Refresh;          //y se dibuja
            End;
         End;
@@ -658,7 +658,7 @@ begin
   Result := nil;   //valor por defecto
   if nom = '' then exit;
   For s In objetos do
-    if s.nombre = nom then begin
+    if s.Name= nom then begin
        Result := s;
        break;
     end;
@@ -724,7 +724,7 @@ begin
   if AutoPos Then begin  //Se calcula posición
     x := v2d.Xvirt(100, 100) + 30 * objetos.Count Mod 400;
     y := v2d.Yvirt(100, 100) + 30 * objetos.Count Mod 400;
-    og.Ubicar(x,y);
+    og.Locate(x,y,0);
   end;
   //configura eventos para ser controlado por este editor
   og.OnSelec   := @ObjGraf_Select;     //referencia a procedimiento de selección

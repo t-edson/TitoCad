@@ -19,9 +19,9 @@ TObjGrafDXF_list = specialize TFPGObjectList<TObjGrafDXF>;
 TObjGrafDXF = class(TObjGraph)  //objeto gráfico DXF
 private
   pc0, pc1, pcM: TPtoCtrl;
-  procedure PtoCtrl0_Move(xvTar, yvTar, dx, dy: Single);
-  procedure PtoCtrl1_Move(xvTar, yvTar, dx, dy: Single);
-  procedure PtoCtrlM_Move(xvTar, yvTar, dxv, dyv: Single);
+  procedure PtoCtrl0_Move(cp: TPtoCtrl; xvTar, yvTar, dx, dy: Single);
+  procedure PtoCtrl1_Move(cp: TPtoCtrl; xvTar, yvTar, dx, dy: Single);
+  procedure PtoCtrlM_Move(cp: TPtoCtrl; xvTar, yvTar, dxv, dyv: Single);
   function SelectRect(const P0, P1: TMotPoint; xp, yp: integer): boolean;
 public  //Campos equivalentes a los de una entidad DXF
   etype : TDXFentType;   //Tipo de entidad
@@ -50,10 +50,10 @@ public  //Campos equivalentes a los de una entidad DXF
 public
   procedure SetP0(const xv,yv,zv: Single);
   procedure SetP1(const xv,yv,zv: Single);
-  procedure ReubicElemen; override;
+  procedure Resize; override;
 public
   procedure Draw; override;  //Dibuja el objeto gráfico
-  function LoSelecciona(xp, yp:integer): Boolean; override;
+  function IsSelectedBy(xp, yp:integer): Boolean; override;
   constructor Create(mGraf: TMotGraf); override;
   destructor Destroy; override;
 end;
@@ -61,54 +61,41 @@ end;
 implementation
 
 { TObjGrafDXF }
-procedure TObjGrafDXF.PtoCtrl0_Move(xvTar, yvTar, dx, dy: Single);
+procedure TObjGrafDXF.PtoCtrl0_Move(cp: TPtoCtrl; xvTar, yvTar, dx, dy: Single);
 begin
-  P0.x:=xvTar;
-  P0.y:=yvTar;
-  ReConstGeom;
+  cp.Locate(xvTar, yvTar, cp.z);
+  Resize;
 end;
-procedure TObjGrafDXF.PtoCtrl1_Move(xvTar, yvTar, dx, dy: Single);
+procedure TObjGrafDXF.PtoCtrl1_Move(cp: TPtoCtrl; xvTar, yvTar, dx, dy: Single);
 begin
   P1.x:=xvTar;
   P1.y:=yvTar;
-  ReConstGeom;
+  Resize;
 end;
-procedure TObjGrafDXF.PtoCtrlM_Move(xvTar, yvTar, dxv, dyv: Single);
+procedure TObjGrafDXF.PtoCtrlM_Move(cp: TPtoCtrl; xvTar, yvTar, dxv, dyv: Single);
 begin
-  ReConstGeom;
+  //Desplazamiento
+  P0.x := P0.x + dxv;
+  P0.y := P0.y + dyv;
+  P1.x := P1.x + dxv;
+  P1.y := P1.y + dyv;
+  Resize;
 end;
 procedure TObjGrafDXF.SetP0(const xv, yv, zv: Single);
 begin
   P0.x:=xv;
   P0.y:=yv;
   P0.z:=zv;
-  ReubicElemen;
+  Resize;
 end;
 procedure TObjGrafDXF.SetP1(const xv, yv, zv: Single);
 begin
   P1.x:=xv;
   P1.y:=yv;
   P1.z:=zv;
-  ReubicElemen;
+  Resize;
 end;
-constructor TObjGrafDXF.Create(mGraf: TMotGraf);
-begin
-  inherited Create(mGraf);
-  //Notar que los puntos de control son estáticos, aunque tal vez sea mejor, crearlos
-  //solo cuando el objeto está seleccionado.
-  pc0:=AddPtoControl(TD_SUP_IZQ,@PtoCtrl0_Move);
-  pc1:=AddPtoControl(TD_SUP_IZQ,@PtoCtrl1_Move);
-  pcM:=AddPtoControl(TD_SUP_IZQ,@PtoCtrlM_Move);
-  ReConstGeom;     //Se debe llamar después de crear los puntos de control para poder ubicarlos
-  nombre := 'Objeto';
-end;
-destructor TObjGrafDXF.Destroy;
-begin
-  if vertexs<>nil then vertexs.Destroy;
-  inherited Destroy;
-end;
-
-procedure TObjGrafDXF.ReubicElemen;
+procedure TObjGrafDXF.Resize;
 begin
   //Ubica puntos de control
   pc0.Locate(P0);
@@ -121,7 +108,7 @@ var
   vtx: TObjGrafDXF;
   i: Integer;
 begin
-  If Marcado and Highlight Then begin
+  If Marked and Highlight Then begin
     v2d.SetPen(TColor($FF8000), 2, psSolid);
   end else begin
     v2d.SetPen(clWhite, 1);
@@ -151,7 +138,7 @@ begin
   end;
   //---------------dibuja marca de seleccion--------------
   if Selected Then begin
-    for pdc in PtosControl do pdc.Dibujar;   //Dibuja puntos de control
+    for pdc in PtosControl do pdc.Draw;   //Dibuja puntos de control
   end;
 end;
 function TObjGrafDXF.SelectRect(const P0, P1: TMotPoint; xp, yp: integer): boolean;
@@ -205,7 +192,7 @@ begin
       end;
   end;
 end;
-function TObjGrafDXF.LoSelecciona(xp, yp: integer): Boolean;
+function TObjGrafDXF.IsSelectedBy(xp, yp: integer): Boolean;
 {Versión personalizada}
 var
   vtx: TObjGrafDXF;
@@ -232,6 +219,21 @@ begin
     Result := false;
   end;
 end;
-
+constructor TObjGrafDXF.Create(mGraf: TMotGraf);
+begin
+  inherited Create(mGraf);
+  //Notar que los puntos de control son estáticos, aunque tal vez sea mejor, crearlos
+  //solo cuando el objeto está seleccionado.
+  pc0:=AddControlPoint(TD_SUP_IZQ,@PtoCtrl0_Move);
+  pc1:=AddControlPoint(TD_SUP_IZQ,@PtoCtrl1_Move);
+  pcM:=AddControlPoint(TD_SUP_IZQ,@PtoCtrlM_Move);
+  Resize;     //Se debe llamar después de crear los puntos de control para poder ubicarlos
+  Name := 'Objeto';
+end;
+destructor TObjGrafDXF.Destroy;
+begin
+  if vertexs<>nil then vertexs.Destroy;
+  inherited Destroy;
+end;
 end.
 
