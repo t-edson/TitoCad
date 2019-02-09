@@ -1,8 +1,23 @@
+Titocad 0.2.9
+=============
+Se cambian más identificadores del código fuente a su equivalente en inglés.
+Se modifica la unidad DefObjGraf, para asemejarse a la unidad equivalente en la librería
+ogEditGraf, incluyendo el cambio de nombre de métodos comunes.
+Se incluye la coordenada z, en algunos métodos que solo trabajaban en 2D.
+Se crean las propiedades Xcent e Ycent.
+Se implementa TObjGrafDXF.PtoCtrlM_Move() para que permita mover a la línea.
+
+Quedaría pendiente ver cómo se realiza la creación y manejo de los puntos de control para
+cuando se crean polilíneas y no hacerlo directamente en el constructor 
+TObjGrafDXF.Create().
+
 Titocad 0.2.8
 =============
 Se continúa con la depuración del código, eliminando definiciones redundantes o no usadas.
 Se incluye la librería DXFya y se integra en el diseño.
 Se incluye la opción para cargar archivos DXF simples. Aún no operativo.
+Se implementan métodos para el manejo de polilíneas.
+Se agrega un parámetro al evento TEvPtoCtrlMoveXY en la unidad DefObjGraf.
  
 
 Titocad 0.2.7

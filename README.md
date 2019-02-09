@@ -1,4 +1,4 @@
-TitoCad 0.2.8
+TitoCad 0.2.9
 =============
 
 TitoCad es un programa desarrollado en Lazarus, con las funcionalidades mínimas de una herramienta CAD de dibujo en 3D.
