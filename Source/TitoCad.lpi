@@ -182,7 +182,7 @@
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
-      <OtherUnitFiles Value="..\..\_Librerias\MisUtils-0.6;..\..\_Librerias\SynFacilUtils-1.21;..\..\_Librerias\MiConfig-0.4;..\..\_Librerias\MotGraf-0.2;..\..\_Librerias\UtilsGrilla-0.8;..\..\_Librerias\DXFya-0.0;ConfigFrames"/>
+      <OtherUnitFiles Value="..\..\_libs\MisUtils-0.6;..\..\_libs\SynFacilUtils-1.21;..\..\_libs\MiConfig-0.4;..\..\_libs\MotGraf-0.2;..\..\_libs\UtilsGrilla-0.8;..\..\_libs\DXFya-0.0;ConfigFrames"/>
       <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
     <Parsing>

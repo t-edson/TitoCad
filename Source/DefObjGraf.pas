@@ -94,7 +94,10 @@ type
     fTipDesplaz: TPosicPCtrol;
     procedure SetTipDesplaz(AValue: TPosicPCtrol);
   public
-    //El tipo de desplazamiento, por lo general debe depender  nicamente de la posicion
+    dataPtr : pointer;   {Campo auxiliar para pasar referencias a cualquier tipo de
+                          dato. En la versión actual se usa solamente para pasar referencias
+                          a objetos TMotPoint, para poder controlarlos. }
+    //El tipo de desplazamiento, por lo general debe depender únicamente de la posicion
     property scrollType: TPosicPCtrol read fTipDesplaz write SetTipDesplaz;
     procedure Draw();
     procedure StartMove(xr, yr: Integer; x0, y0: Single);
@@ -102,10 +105,10 @@ type
     procedure MouseUp(Button: TMouseButton; Shift: TShiftState; xp, yp: Integer);
     function LoSelec(xp, yp: Integer):boolean;
   private
-    tipPuntero: Integer;  //Tipo de puntero
-    OnCtrlPointMoveXY : TEvPtoCtrlMoveXY;  //Evento de desplazamiento del Pto de Control.
+    mousePtr: Integer;  //Tipo de puntero del mouse
+    OnCtrlPointMoveXY: TEvPtoCtrlMoveXY;  //Evento de desplazamiento del Pto de Control.
     xvTar, yvTar: Single;  {Coordenadas objetivo para las dimensiones. Usada para generar
-                            el evento OnPCdimen}
+                            el evento OnCtrlPointMoveXY.}
   public
     constructor Create(mGraf: TMotGraf; scrollType0: TPosicPCtrol;
       ProcMove: TEvPtoCtrlMoveXY);
@@ -427,7 +430,7 @@ begin
     if Assigned(OnCamPunt) then begin
         pc := SelecPtoControl(xp,yp);
         if pc<> NIL then
-           OnCamPunt(pc.tipPuntero)  //cambia a supuntero
+           OnCamPunt(pc.mousePtr)  //cambia a supuntero
         else
            OnCamPunt(crDefault);
     end;
@@ -487,17 +490,17 @@ begin
   fTipDesplaz:=AValue;
   //actualiza tipo de puntero
   case scrollType of
-  TD_SUP_IZQ: tipPuntero := crSizeNW;
-  TD_SUP_CEN: tipPuntero := crSizeNS;
-  TD_SUP_DER: tipPuntero := crSizeNE;
+  TD_SUP_IZQ: mousePtr := crSizeNW;
+  TD_SUP_CEN: mousePtr := crSizeNS;
+  TD_SUP_DER: mousePtr := crSizeNE;
 
-  TD_CEN_IZQ: tipPuntero := crSizeWE;
-  TD_CEN_DER: tipPuntero := crSizeWE;
+  TD_CEN_IZQ: mousePtr := crSizeWE;
+  TD_CEN_DER: mousePtr := crSizeWE;
 
-  TD_INF_IZQ: tipPuntero := crSizeNE;
-  TD_INF_CEN: tipPuntero := crSizeNS;
-  TD_INF_DER: tipPuntero := crSizeNW;
-  else        tipPuntero := crDefault ;
+  TD_INF_IZQ: mousePtr := crSizeNE;
+  TD_INF_CEN: mousePtr := crSizeNS;
+  TD_INF_DER: mousePtr := crSizeNW;
+  else        mousePtr := crDefault ;
   end;
 end;
 constructor TPtoCtrl.Create(mGraf: TMotGraf; scrollType0: TPosicPCtrol;

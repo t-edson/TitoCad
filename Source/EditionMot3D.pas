@@ -1199,7 +1199,7 @@ const
   {Usamos constante con tipo porque no hay STATIC en FreePascal, y como este
   procedimiento irá ejecutándose repetídamente, necesitamos conservar el valor de las
   variables, entre sesión y sesión.}
-  lin: TObjGrafDXF = nil;
+  lin: TGoEntity = nil;
   x0: Single = 0;  //Coordenadas iniciales
   y0: Single = 0;  //Coordenadas iniciales
 var
@@ -1224,14 +1224,14 @@ begin
         exit;
       end;
       //Agregar recta, con las coord. dadas
-      lin := TObjGrafDXF.Create(v2d);
+      lin := TGoEntity.Create(v2d);
       lin.SetP0(xLin, yLin, zLin); //Especifica el primer punto
       lin.SetP1(xvPtr, yvPtr, zLin); //Especifica siguiente punto por defecto
       x0 := xLin; y0 := yLin;  //guarda primer punto
     end;
     vmeMouseDown: begin
       //Agregar recta, con las coord. dadas
-      lin := TObjGrafDXF.Create(v2d);
+      lin := TGoEntity.Create(v2d);
       lin.SetP0(xvPtr, yvPtr, 0); //Esperamos coordenadas
       lin.SetP1(xvPtr, yvPtr, 0);
       x0 := xvPtr; y0 := yvPtr;  //guarda primer punto
@@ -1277,7 +1277,7 @@ begin
       Refresh;
 
       //Inicia otra recta, sin salir del estado
-      lin := TObjGrafDXF.Create(v2d);
+      lin := TGoEntity.Create(v2d);
       lin.SetP0(xLin, yLin, 0); //Esperamos coordenadas
       lin.SetP1(xvPtr, yvPtr, 0);
       AddObjGraph(lin);
@@ -1301,7 +1301,7 @@ begin
       Refresh;
 
       //Inicia otra recta, sin salir del estado
-      lin := TObjGrafDXF.Create(v2d);
+      lin := TGoEntity.Create(v2d);
       lin.SetP0(xvPtr, yvPtr, 0); //Esperamos coordenadas
       lin.SetP1(xvPtr, yvPtr, 0);
       AddObjGraph(lin);
@@ -1317,10 +1317,10 @@ const
   {Usamos constante con tipo porque no hay STATIC en FreePascal, y como este
   procedimiento irá ejecutándose repetídamente, necesitamos conservar el valor de las
   variables, entre sesión y sesión.}
-  lin1: TObjGrafDXF = nil;
-  lin2: TObjGrafDXF = nil;
-  lin3: TObjGrafDXF = nil;
-  lin4: TObjGrafDXF = nil;
+  lin1: TGoEntity = nil;
+  lin2: TGoEntity = nil;
+  lin3: TGoEntity = nil;
+  lin4: TGoEntity = nil;
 var
   xLin, yLin, zLin: Single;
 begin
@@ -1343,37 +1343,37 @@ begin
         exit;
       end;
       //Agregar rectas del rectángulo, con las coord. dadas
-      lin1 := TObjGrafDXF.Create(v2d);
+      lin1 := TGoEntity.Create(v2d);
       lin1.SetP0(xLin, yLin, zLin); //Especifica el primer punto
       lin1.SetP1(xvPtr, yvPtr, zLin); //Especifica el primer punto
 
-      lin2 := TObjGrafDXF.Create(v2d);
+      lin2 := TGoEntity.Create(v2d);
       lin2.SetP0(xLin, yLin, 0); //Especifica el primer punto
       lin2.SetP1(xvPtr, yvPtr, 0); //Especifica el primer punto
 
-      lin3 := TObjGrafDXF.Create(v2d);
+      lin3 := TGoEntity.Create(v2d);
       lin3.SetP0(xLin, yLin, 0); //Especifica el primer punto
       lin3.SetP1(xvPtr, yvPtr, 0); //Especifica el primer punto
 
-      lin4 := TObjGrafDXF.Create(v2d);
+      lin4 := TGoEntity.Create(v2d);
       lin4.SetP0(xLin, yLin, 0); //Especifica el primer punto
       lin4.SetP1(xvPtr, yvPtr, 0); //Especifica el primer punto
     end;
     vmeMouseDown: begin
       //Agregar recta, con las coord. dadas
-      lin1 := TObjGrafDXF.Create(v2d);
+      lin1 := TGoEntity.Create(v2d);
       lin1.SetP0(xvPtr, yvPtr, 0); //Esperamos coordenadas
       lin1.SetP1(xvPtr, yvPtr, 0);
 
-      lin2 := TObjGrafDXF.Create(v2d);
+      lin2 := TGoEntity.Create(v2d);
       lin2.SetP0(xvPtr, yvPtr, 0); //Esperamos coordenadas
       lin2.SetP1(xvPtr, yvPtr, 0);
 
-      lin3 := TObjGrafDXF.Create(v2d);
+      lin3 := TGoEntity.Create(v2d);
       lin3.SetP0(xvPtr, yvPtr, 0); //Esperamos coordenadas
       lin3.SetP1(xvPtr, yvPtr, 0);
 
-      lin4 := TObjGrafDXF.Create(v2d);
+      lin4 := TGoEntity.Create(v2d);
       lin4.SetP0(xvPtr, yvPtr, 0); //Esperamos coordenadas
       lin4.SetP1(xvPtr, yvPtr, 0);
 

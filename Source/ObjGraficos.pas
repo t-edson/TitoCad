@@ -11,16 +11,15 @@ uses
 
 type
 
-TObjGrafDXF = class;
-TObjGrafDXF_list = specialize TFPGObjectList<TObjGrafDXF>;
+TGoEntity = class;
+TObjGrafDXF_list = specialize TFPGObjectList<TGoEntity>;
 
-{ TObjGrafDXF }
+{ TGoEntity }
 {Se define al objeto para que sea compatible con archivos DXF.}
-TObjGrafDXF = class(TObjGraph)  //objeto gráfico DXF
+TGoEntity = class(TObjGraph)  //objeto gráfico DXF
 private
   pc0, pc1, pcM: TPtoCtrl;
-  procedure PtoCtrl0_Move(cp: TPtoCtrl; xvTar, yvTar, dx, dy: Single);
-  procedure PtoCtrl1_Move(cp: TPtoCtrl; xvTar, yvTar, dx, dy: Single);
+  procedure CtrlPoint_move(cp: TPtoCtrl; xvTar, yvTar, dx, dy: Single);
   procedure PtoCtrlM_Move(cp: TPtoCtrl; xvTar, yvTar, dxv, dyv: Single);
   function SelectRect(const P0, P1: TMotPoint; xp, yp: integer): boolean;
 public  //Campos equivalentes a los de una entidad DXF
@@ -45,7 +44,7 @@ public  //Campos equivalentes a los de una entidad DXF
   radius: double;
   vertexs: TObjGrafDXF_list;   {Lista de Vertex. Solo se instancia para objetos
                                complejos. OJO!!! Es muy pesado guardar una lista de
-                               TObjGrafDXF. Debería optimizarse}
+                               TGoEntity. Debería optimizarse}
   blkName: string;    //usado cuando es de tipo etyInsert.
 public
   procedure SetP0(const xv,yv,zv: Single);
@@ -58,21 +57,28 @@ public
   destructor Destroy; override;
 end;
 
-implementation
+{ TGoEntityLine }
 
-{ TObjGrafDXF }
-procedure TObjGrafDXF.PtoCtrl0_Move(cp: TPtoCtrl; xvTar, yvTar, dx, dy: Single);
+TGoEntityLine = class(TGoEntity)
+  procedure Draw; override;  //Dibuja el objeto gráfico
+end;
+
+{ TGoEntityPolyline }
+
+TGoEntityPolyline = class(TGoEntity)
+  procedure Draw; override;  //Dibuja el objeto gráfico
+end;
+
+implementation
+{ TGoEntity }
+procedure TGoEntity.CtrlPoint_move(cp: TPtoCtrl; xvTar, yvTar, dx, dy: Single);
+{Se porducecuando se mueve algún punto de control.}
 begin
-  cp.Locate(xvTar, yvTar, cp.z);
+  TMotPoint(cp.dataPtr^).x := xvTar;
+  TMotPoint(cp.dataPtr^).y := yvTar;
   Resize;
 end;
-procedure TObjGrafDXF.PtoCtrl1_Move(cp: TPtoCtrl; xvTar, yvTar, dx, dy: Single);
-begin
-  P1.x:=xvTar;
-  P1.y:=yvTar;
-  Resize;
-end;
-procedure TObjGrafDXF.PtoCtrlM_Move(cp: TPtoCtrl; xvTar, yvTar, dxv, dyv: Single);
+procedure TGoEntity.PtoCtrlM_Move(cp: TPtoCtrl; xvTar, yvTar, dxv, dyv: Single);
 begin
   //Desplazamiento
   P0.x := P0.x + dxv;
@@ -81,31 +87,31 @@ begin
   P1.y := P1.y + dyv;
   Resize;
 end;
-procedure TObjGrafDXF.SetP0(const xv, yv, zv: Single);
+procedure TGoEntity.SetP0(const xv, yv, zv: Single);
 begin
   P0.x:=xv;
   P0.y:=yv;
   P0.z:=zv;
   Resize;
 end;
-procedure TObjGrafDXF.SetP1(const xv, yv, zv: Single);
+procedure TGoEntity.SetP1(const xv, yv, zv: Single);
 begin
   P1.x:=xv;
   P1.y:=yv;
   P1.z:=zv;
   Resize;
 end;
-procedure TObjGrafDXF.Resize;
+procedure TGoEntity.Resize;
 begin
   //Ubica puntos de control
   pc0.Locate(P0);
   pc1.Locate(P1);
   pcM.Locate((P0.x + P1.x)/2, (P0.y + P1.y)/2, (P0.z + P1.z)/2 );
 end;
-procedure TObjGrafDXF.Draw;
+procedure TGoEntity.Draw;
 var
   pdc  : TPtoCtrl;
-  vtx: TObjGrafDXF;
+  vtx: TGoEntity;
   i: Integer;
 begin
   If Marked and Highlight Then begin
@@ -141,7 +147,7 @@ begin
     for pdc in PtosControl do pdc.Draw;   //Dibuja puntos de control
   end;
 end;
-function TObjGrafDXF.SelectRect(const P0, P1: TMotPoint; xp, yp: integer): boolean;
+function TGoEntity.SelectRect(const P0, P1: TMotPoint; xp, yp: integer): boolean;
 {Indica si las coordenadas (xp, yp) seleccionan a la recta definida por los puntos P0 y
 P1. Se asume que los puntos P0 y P1, tienen ya sus coordenadas de pantalla actualizadas.}
 var
@@ -192,10 +198,10 @@ begin
       end;
   end;
 end;
-function TObjGrafDXF.IsSelectedBy(xp, yp: integer): Boolean;
+function TGoEntity.IsSelectedBy(xp, yp: integer): Boolean;
 {Versión personalizada}
 var
-  vtx: TObjGrafDXF;
+  vtx: TGoEntity;
 begin
   {No debería ser necesario actualizar las coordenadas de pantalla de P0 y P1, ya que
   si esta recta se mostró en pantalla, es porque se actualizaron sus coordenadas de
@@ -219,21 +225,104 @@ begin
     Result := false;
   end;
 end;
-constructor TObjGrafDXF.Create(mGraf: TMotGraf);
+constructor TGoEntity.Create(mGraf: TMotGraf);
 begin
   inherited Create(mGraf);
   //Notar que los puntos de control son estáticos, aunque tal vez sea mejor, crearlos
   //solo cuando el objeto está seleccionado.
-  pc0:=AddControlPoint(TD_SUP_IZQ,@PtoCtrl0_Move);
-  pc1:=AddControlPoint(TD_SUP_IZQ,@PtoCtrl1_Move);
+  pc0:=AddControlPoint(TD_SUP_IZQ,@CtrlPoint_move);
+  pc0.dataPtr := @P0;
+  pc1:=AddControlPoint(TD_SUP_IZQ,@CtrlPoint_move);
+  pc1.dataPtr := @P1;
   pcM:=AddControlPoint(TD_SUP_IZQ,@PtoCtrlM_Move);
   Resize;     //Se debe llamar después de crear los puntos de control para poder ubicarlos
-  Name := 'Objeto';
+  Name := 'Object';
 end;
-destructor TObjGrafDXF.Destroy;
+destructor TGoEntity.Destroy;
 begin
   if vertexs<>nil then vertexs.Destroy;
   inherited Destroy;
 end;
+{ TGoEntityLine }
+procedure TGoEntityLine.Draw;
+var
+  pdc  : TPtoCtrl;
+  vtx: TGoEntity;
+  i: Integer;
+begin
+  If Marked and Highlight Then begin
+    v2d.SetPen(TColor($FF8000), 2, psSolid);
+  end else begin
+    v2d.SetPen(clWhite, 1);
+  end;
+  case etype of
+  etyLine: begin
+      v2d.Line(P0, P1);
+    end;
+//  etyCircle: begin
+//      v2d.Circulo(xv + ent.x0, y + ent.y0,
+//                  ent.radius);
+//    end;
+  etyPolyline: begin
+    //Se asume que cada vertex es una forma independiente
+    if (polyFlag and $0001) <> 0 then begin
+      //Polígono cerrado
+      for vtx in vertexs do begin
+        vtx.Draw;
+      end;
+    end else begin
+      //Polígono abierto
+      for i:=0 to vertexs.Count-2 do begin
+        vertexs[i].Draw;
+      end;
+    end;
+  end;
+  end;
+  //---------------dibuja marca de seleccion--------------
+  if Selected Then begin
+    for pdc in PtosControl do pdc.Draw;   //Dibuja puntos de control
+  end;
+end;
+{ TGoEntityPolyline }
+procedure TGoEntityPolyline.Draw;
+var
+  pdc  : TPtoCtrl;
+  vtx: TGoEntity;
+  i: Integer;
+begin
+  If Marked and Highlight Then begin
+    v2d.SetPen(TColor($FF8000), 2, psSolid);
+  end else begin
+    v2d.SetPen(clWhite, 1);
+  end;
+  case etype of
+  etyLine: begin
+      v2d.Line(P0, P1);
+    end;
+//  etyCircle: begin
+//      v2d.Circulo(xv + ent.x0, y + ent.y0,
+//                  ent.radius);
+//    end;
+  etyPolyline: begin
+    //Se asume que cada vertex es una forma independiente
+    if (polyFlag and $0001) <> 0 then begin
+      //Polígono cerrado
+      for vtx in vertexs do begin
+        vtx.Draw;
+      end;
+    end else begin
+      //Polígono abierto
+      for i:=0 to vertexs.Count-2 do begin
+        vertexs[i].Draw;
+      end;
+    end;
+  end;
+  end;
+  //---------------dibuja marca de seleccion--------------
+  if Selected Then begin
+    for pdc in PtosControl do pdc.Draw;   //Dibuja puntos de control
+  end;
+end;
+
 end.
 

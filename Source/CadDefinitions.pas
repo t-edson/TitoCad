@@ -140,7 +140,9 @@ procedure TCadProject.LoadDXFFile(fileName: string);
 {Carga un archivo DXF}
 var
   ent: TDXFentitie;
-  lin, ver: TObjGrafDXF;
+  lin: TGoEntityLine;
+  pol: TGoEntityPolyline;
+  ver: TGoEntity;
   i: Integer;
 begin
   dxfFile.ReadFromFile(fileName);
@@ -158,7 +160,7 @@ begin
 //        v2d.Linea(x + ent.x0, y + ent.y0,
 //                  x + ent.x1, y + ent.y1);
 
-        lin := TObjGrafDXF.Create(ActivePage.view.ediMot.v2d);
+        lin := TGoEntityLine.Create(ActivePage.view.ediMot.v2d);
         lin.etype := ent.etype;
         lin.SetP0(ent.x0, ent.y0, ent.z0);
         lin.SetP1(ent.x1, ent.y1, ent.z1);
@@ -166,14 +168,14 @@ begin
         ActivePage.view.ediMot.Refresh;
       end;
     etyPolyline: begin
-        lin := TObjGrafDXF.Create(ActivePage.view.ediMot.v2d);
-        lin.etype := ent.etype;
-        lin.SetP0(ent.x0, ent.y0, ent.z0);
-        lin.SetP1(ent.x1, ent.y1, ent.z1);
-        lin.vertexs := TObjGrafDXF_list.Create(true);
-        lin.polyFlag := ent.polyFlag;
+        pol := TGoEntityPolyline.Create(ActivePage.view.ediMot.v2d);
+        pol.etype := ent.etype;
+        pol.SetP0(ent.x0, ent.y0, ent.z0);
+        pol.SetP1(ent.x1, ent.y1, ent.z1);
+        pol.vertexs := TObjGrafDXF_list.Create(true);
+        pol.polyFlag := ent.polyFlag;
         for i := 0 to ent.vertexs.Count-1 do begin
-          ver := TObjGrafDXF.Create(ActivePage.view.ediMot.v2d);
+          ver := TGoEntity.Create(ActivePage.view.ediMot.v2d);
 //          ver.Locate(ent.vertexs[i].x0,
 //                     ent.vertexs[i].y0,
 //                     ent.vertexs[i].z0);
@@ -181,9 +183,9 @@ begin
           ver.SetP1(ent.vertexs[i].x1,ent.vertexs[i].y1,ent.vertexs[i].z1);
 //debugln('P0=%f,%f,%f', [ver.P0.x, ver.P0.y, ver.P0.x]);
 //debugln('P1=%f,%f,%f', [ver.P1.x, ver.P1.y, ver.P1.x]);
-          lin.vertexs.Add(ver);
+          pol.vertexs.Add(ver);
         end;
-        ActivePage.view.ediMot.AddObjGraph(lin);
+        ActivePage.view.ediMot.AddObjGraph(pol);
         ActivePage.view.ediMot.Refresh;
       end;
     end;
